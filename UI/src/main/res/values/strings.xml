@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Navigation through Floors</string>
+    <string name="first_floor">First Floor</string>
+    <string name="second_floor">Second Floor</string>
+    <string name="third_floor">Third Floor</string>
+    <string name="fourth_floor">Fourth Floor</string>
+    <string name="title_activity_navigation">Navigation Activity</string>
+    <string name="instruction_main">Choose your initial location and destination</string>
+    <string name="instruction_navigation">Follow the instructions!</string>
+</resources>
