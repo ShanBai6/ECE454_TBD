@@ -5,69 +5,80 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
+import static java.lang.Thread.sleep;
+
 public class MainActivity extends Activity {
 
     private static int numOfClick = 0;
-    private String startingPoint;
-    private String destination;
+    private static String startingPoint;
+    private static String destination;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        if(numOfClick == 2){
-            Intent intent = new Intent(MainActivity.this,
-                    NavigationActivity.class);
-            startActivity(intent);
-        }
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (numOfClick < 2) {
+                    try {
+                        sleep(5);
+                    } catch (InterruptedException e) {
+                    }
+                }
+
+                Intent intent = new Intent(MainActivity.this,
+                        NavigationActivity.class);
+                startActivity(intent);
+
+            }
+        }).start();
+
+
     }
 
     public void onFirstFloorClicked(View v) {
-        if(numOfClick == 0){
+        if (numOfClick == 0) {
             startingPoint = "firstFloor";
-        }
-        else{
+        } else {
             destination = "firstFloor";
         }
-        numOfClick ++;
+        numOfClick++;
     }
 
     public void onSecondFloorClicked(View v) {
-        if(numOfClick == 0){
+        if (numOfClick == 0) {
             startingPoint = "secondFloor";
-        }
-        else{
+        } else {
             destination = "secondFloor";
         }
-        numOfClick ++;
+        numOfClick++;
     }
 
     public void onThirdFloorClicked(View v) {
-        if(numOfClick == 0){
+        if (numOfClick == 0) {
             startingPoint = "thirdFloor";
-        }
-        else{
+        } else {
             destination = "thirdFloor";
         }
-        numOfClick ++;
+        numOfClick++;
     }
 
     public void onFourthFloorClicked(View v) {
-        if(numOfClick == 0){
+        if (numOfClick == 0) {
             startingPoint = "FourthFloor";
-        }
-        else{
+        } else {
             destination = "FourthFloor";
         }
-        numOfClick ++;
+        numOfClick++;
     }
 
-    public String getStartingPoint(){
+    public static  String getStartingPoint() {
         return startingPoint;
     }
 
-    public String getDestination(){
+    public static String getDestination() {
         return destination;
     }
 

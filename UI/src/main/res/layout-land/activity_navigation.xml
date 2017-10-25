@@ -3,14 +3,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
     tools:context=".MainActivity"
-    android:weightSum="1">
+    android:weightSum="1"
+    android:orientation="vertical">
 
     <ImageView
         android:id="@+id/imageView8"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="60dp"
         android:visibility="visible"
         android:src="@drawable/uparrow"
         android:contentDescription="uparrow"/>
@@ -18,7 +18,7 @@
     <ImageView
         android:id="@+id/imageView7"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="60dp"
         android:visibility="visible"
         android:src="@drawable/leftarrow"
         android:contentDescription="leftwarrow"/>
@@ -26,7 +26,7 @@
     <ImageView
         android:id="@+id/imageView6"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="52dp"
         android:visibility="visible"
         android:src="@drawable/rightarrow"
         android:contentDescription="rightarrow"/>
@@ -34,7 +34,7 @@
     <ImageView
         android:id="@+id/imageView5"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="38dp"
         android:contentDescription="downarrow"
         android:src="@drawable/downarrow"
         android:visibility="visible" />
@@ -42,7 +42,7 @@
     <ImageView
         android:id="@+id/imageView4"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="42dp"
         android:adjustViewBounds="false"
         android:cropToPadding="false"
         android:visibility="visible"
