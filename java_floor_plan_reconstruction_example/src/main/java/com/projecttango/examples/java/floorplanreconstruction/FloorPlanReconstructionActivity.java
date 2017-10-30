@@ -55,6 +55,9 @@ import org.w3c.dom.Text;
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.lang.Math.abs;
+import static java.lang.Math.round;
+
 /**
  * An example showing how to use the 3D reconstruction floor planning features to create a
  * floor plan in Java.
@@ -91,7 +94,7 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
     private final int START = Integer.parseInt(MainActivity.getStartingPoint());
     private float mMinAreaSpace = 0;
 
-    private int currFloor=0;
+    private double currFloor=0;
     private float startDevToFloorDistance;
     private boolean isStarted;
 
@@ -118,7 +121,7 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
         mDistanceText = (TextView) findViewById(R.id.floordistance_text);
         mFloorText=(TextView)findViewById(R.id.floor_text);
         //currFloor = Integer.parseInt(MainActivity.getStartingPoint());
-        mFloorText.setText(""+currFloor);
+        mFloorText.setText(""+(int)currFloor);
         isStarted=false;
 
         up = (ImageView) findViewById(R.id.imageView8);
@@ -409,19 +412,27 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
                     /*
                      * Testing if floor changes
                     */
-                    currFloor =(int)( Math.abs(devToFloorDistance-startDevToFloorDistance)/FLOOR_HEIGHT) + START ;
-                    Log.d("Tag",""+currFloor);
-                    // TODO: change it
-                    if (currFloor == DESTINATION) {
+                    //going up
+                    if(START < DESTINATION) {
+                        currFloor = (abs(devToFloorDistance - startDevToFloorDistance) / FLOOR_HEIGHT) + START;
+                    }
+                    //going down
+                    else if(START > DESTINATION){
+                        currFloor = START - (abs(devToFloorDistance - startDevToFloorDistance) / FLOOR_HEIGHT);
+                    }
+                    //stay
+                    else{
+                        currFloor = START;
+                    }
+
+                    if (abs(currFloor - DESTINATION) < 0.1) {
                         ShowPic("STOP");
                     } else if (currFloor < DESTINATION) {
                         ShowPic("UP");
                     } else {
                         ShowPic("DOWN");
                     }
-                    mFloorText.setText("" + (currFloor));
-
-
+                    mFloorText.setText(String.valueOf(round(currFloor)));
 
                     mHeightText.setText(ceilingHeightText);
                     mDistanceText.setText(distanceText);
