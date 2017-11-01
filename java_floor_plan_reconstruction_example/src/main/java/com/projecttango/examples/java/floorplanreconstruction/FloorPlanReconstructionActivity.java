@@ -77,7 +77,7 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
     /*
     testing height between two floors
      */
-    private static final double FLOOR_HEIGHT=4.4;
+    private static final float FLOOR_HEIGHT = 4.4f;
     private TangoFloorplanner mTangoFloorplanner;
     private Tango mTango;
     private TangoConfig mConfig;
@@ -94,7 +94,7 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
     private final int START = Integer.parseInt(MainActivity.getStartingPoint());
     private float mMinAreaSpace = 0;
 
-    private double currFloor=0;
+    private double currFloor = 0;
     private float startDevToFloorDistance;
     private boolean isStarted;
 
@@ -103,6 +103,11 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
     private ImageView right;
     private ImageView down;
     private ImageView stop;
+
+    private boolean clearClicked = false;
+    private boolean isSet = false;
+    private float minFloor;
+    private float maxFloor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -114,21 +119,21 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
         mMinAreaSpace = typedValue.getFloat();
 
         mPauseButton = (Button) findViewById(R.id.pause_button);
-       // //mFloorplanView = (FloorplanView) findViewById(R.id.floorplan);
+        // //mFloorplanView = (FloorplanView) findViewById(R.id.floorplan);
         ////mFloorplanView.registerCallback(this);
         mAreaText = (TextView) findViewById(R.id.area_text);
         mHeightText = (TextView) findViewById(R.id.height_text);
         mDistanceText = (TextView) findViewById(R.id.floordistance_text);
-        mFloorText=(TextView)findViewById(R.id.floor_text);
+        mFloorText = (TextView) findViewById(R.id.floor_text);
         //currFloor = Integer.parseInt(MainActivity.getStartingPoint());
-        mFloorText.setText(""+(int)currFloor);
-        isStarted=false;
+        mFloorText.setText("" + (int) currFloor);
+        isStarted = false;
 
         up = (ImageView) findViewById(R.id.imageView8);
-        left =(ImageView) findViewById(R.id.imageView7);
-        right = (ImageView)findViewById(R.id.imageView6);
-        down = (ImageView)findViewById(R.id.imageView5);
-        stop = (ImageView)findViewById(R.id.imageView4);
+        left = (ImageView) findViewById(R.id.imageView7);
+        right = (ImageView) findViewById(R.id.imageView6);
+        down = (ImageView) findViewById(R.id.imageView5);
+        stop = (ImageView) findViewById(R.id.imageView4);
 
         DisplayManager displayManager = (DisplayManager) getSystemService(DISPLAY_SERVICE);
         if (displayManager != null) {
@@ -329,7 +334,7 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
                             deviceOrientation[3]);
 
                     //mFloorplanView.updateCameraMatrix(devicePosition[0], devicePosition[2],
-                            //yawRadians);
+                    //yawRadians);
                 } else {
                     Log.w(TAG, "Can't get last device pose");
                 }
@@ -379,8 +384,16 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
     private void updateFloorAndCeiling(List<TangoFloorplanLevel> levels) {
         if (levels.size() > 0) {
             // Currently only one level is supported by the floorplanning API.
+            if (clearClicked && !isSet) {
+                TangoFloorplanLevel level = levels.get(0);
+                minFloor = level.minZ;
+                maxFloor = level.minZ + FLOOR_HEIGHT;
+                isSet = true;
+            }
+
             TangoFloorplanLevel level = levels.get(0);
             float ceilingHeight = level.maxZ - level.minZ;
+
             final String ceilingHeightText = String.format("%.2f", ceilingHeight);
             // Query current device pose and calculate the distance from it to the floor.
             TangoPoseData devicePose;
@@ -398,46 +411,56 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
                         TangoSupport.ENGINE_OPENGL,
                         mDisplayRotation);
             }
+            final float devToFloorDistance;
+            if (isSet) {
+                if (START < DESTINATION) {
+                    devToFloorDistance = devicePose.getTranslationAsFloats()[1] - minFloor;
+                } else if (START > DESTINATION) {
+                    devToFloorDistance = minFloor - devicePose.getTranslationAsFloats()[1];
+                } else {
+                    devToFloorDistance = devicePose.getTranslationAsFloats()[1] - minFloor;
+                }
 
-            final float devToFloorDistance = devicePose.getTranslationAsFloats()[1] - level.minZ;
-            if(!isStarted){
-                startDevToFloorDistance=devToFloorDistance;
-                isStarted=true;
-            }
-            final String distanceText = String.format("%.2f", devToFloorDistance);
+                if(!isStarted) {
+                    startDevToFloorDistance = devToFloorDistance;
+                    isStarted = true;
+                }
+                final String distanceText = String.format("%.2f", devToFloorDistance);
 
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
                     /*
                      * Testing if floor changes
                     */
-                    //going up
-                    if(START < DESTINATION) {
-                        currFloor = (abs(devToFloorDistance - startDevToFloorDistance) / FLOOR_HEIGHT) + START;
-                    }
-                    //going down
-                    else if(START > DESTINATION){
-                        currFloor = START - (abs(devToFloorDistance - startDevToFloorDistance) / FLOOR_HEIGHT);
-                    }
-                    //stay
-                    else{
-                        currFloor = START;
-                    }
+                        //going up
+                        if (START < DESTINATION) {
+                            currFloor = (abs(devToFloorDistance - startDevToFloorDistance) / FLOOR_HEIGHT) + START;
+                        }
+                        //going down
+                        else if (START > DESTINATION) {
+                            currFloor = START - (abs(devToFloorDistance - startDevToFloorDistance) / FLOOR_HEIGHT);
+                        }
+                        //stay
+                        else {
+                            currFloor = START;
+                        }
 
-                    if (abs(currFloor - DESTINATION) < 0.1) {
-                        ShowPic("STOP");
-                    } else if (currFloor < DESTINATION) {
-                        ShowPic("UP");
-                    } else {
-                        ShowPic("DOWN");
-                    }
-                    mFloorText.setText(String.valueOf(round(currFloor)));
+                        if (abs(currFloor - DESTINATION) < 0.1) {
+                            ShowPic("STOP");
+                        } else if (currFloor < DESTINATION) {
+                            ShowPic("UP");
+                        } else {
+                            ShowPic("DOWN");
+                        }
+                        mFloorText.setText(String.valueOf(round(currFloor)));
 
-                    mHeightText.setText(ceilingHeightText);
-                    mDistanceText.setText(distanceText);
-                }
-            });
+                        mHeightText.setText(ceilingHeightText);
+                        mDistanceText.setText(distanceText);
+                    }
+                });
+            }
         }
     }
 
@@ -447,7 +470,7 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
     }
 
     @UiThread
-    private void pauseOrResumeFloorplanning(boolean isPaused){
+    private void pauseOrResumeFloorplanning(boolean isPaused) {
         if (!isPaused) {
             mTangoFloorplanner.startFloorplanning();
             mPauseButton.setText("Pause");
@@ -459,6 +482,7 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
 
     public void onClearButtonClicked(View v) {
         mTangoFloorplanner.resetFloorplan();
+        clearClicked = true;
     }
 
     /**
@@ -547,8 +571,8 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
         }
     }
 
-    public void ShowPic(String direction){
-        switch (direction.toUpperCase()){
+    public void ShowPic(String direction) {
+        switch (direction.toUpperCase()) {
             case "STOP":
                 down.setAlpha(0.0f);
                 right.setAlpha(0.0f);
