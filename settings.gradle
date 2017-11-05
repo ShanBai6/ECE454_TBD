@@ -1,4 +1,4 @@
-include ':hello_area_description', ':UI', ':java_examples_utils', ':java_floor_plan_reconstruction_example'
+include ':hello_area_description', ':UI', ':java_examples_utils', ':java_floor_plan_reconstruction_example', ':ocr_reader'
 include ':hello_depth_perception'
 include ':hello_motion_tracking'
 include ':hello_video'
