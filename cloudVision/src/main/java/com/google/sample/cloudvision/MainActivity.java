@@ -17,6 +17,7 @@
 package com.google.sample.cloudvision;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -273,8 +274,18 @@ public class MainActivity extends AppCompatActivity {
                 }
                 return "Cloud Vision API request failed. Check logs for details.";
             }
-
+            @Override
             protected void onPostExecute(String result) {
+                String[] lines = result.split(System.getProperty("line.separator"));
+                for (String line : lines) {
+                    Log.v("line", line);
+                    String[] info = line.split(":");
+                    if (info.length >= 2) {
+                        if (info[1].trim().equals("door")) {
+                            ((TextView)findViewById(R.id.door_index)).setText("" + info[0]);
+                        }
+                    }
+                }
                 mImageDetails.setText(result);
             }
         }.execute();
@@ -305,20 +316,8 @@ public class MainActivity extends AppCompatActivity {
 
         List<EntityAnnotation> labels = response.getResponses().get(0).getLabelAnnotations();
         // Hongyi Wang
-        boolean flag = false;
         if (labels != null) {
             for (EntityAnnotation label : labels) {
-                // Hongyi Wang
-                Log.v("label", String.valueOf(label.getDescription().trim().length()));
-                String str = label.getDescription().trim();
-                if (str.equals("door")) {
-                    ((TextView)findViewById(R.id.door_index)).setText( String.valueOf(label.getScore()));
-                    flag = true;
-                } else {
-                    if(!flag) {
-                        ((TextView) findViewById(R.id.door_index)).setText("no door detected!!!");
-                    }
-                }
                 message += String.format(Locale.US, "%.3f: %s", label.getScore(), label.getDescription());
                 message += "\n";
             }

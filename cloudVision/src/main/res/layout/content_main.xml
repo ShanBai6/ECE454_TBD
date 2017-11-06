@@ -28,17 +28,17 @@
                 android:layout_marginBottom="8dp"
                 android:text="Use the floating action button to select an image."/>
 
-            <TextView
-                android:id="@+id/door_index"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="TextView" />
-
             <ImageView
                 android:id="@+id/main_image"
                 android:layout_width="match_parent"
                 android:layout_height="200dp"
                 android:scaleType="fitCenter"/>
+
+            <TextView
+                android:id="@+id/door_index"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="TextView" />
         </LinearLayout>
     </ScrollView>
 </RelativeLayout>
