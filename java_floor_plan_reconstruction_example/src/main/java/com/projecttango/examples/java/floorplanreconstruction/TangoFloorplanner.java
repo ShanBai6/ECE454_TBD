@@ -32,6 +32,8 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.Log;
 
+import java.nio.FloatBuffer;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -97,8 +99,40 @@ public class TangoFloorplanner extends Tango.OnTangoUpdateListener {
                             return;
                         }
 
-                        // Get the latest point cloud data.
+                       // Get the latest point cloud data.
                         TangoPointCloudData cloudData = mPointCloudBuffer.getLatestPointCloud();
+                       // Hongyi Wang was here 11/6/2017
+                        int numPoints = cloudData.numPoints;
+                        FloatBuffer points = cloudData.points;
+                        int numFloats = 4 * numPoints;
+                        Log.v("!!!!!!!!!!Time!!!!!!", String.valueOf(cloudData.timestamp));
+                        Log.v("!!!!!NumPoints!", String.valueOf(numPoints));
+                        float[] a = new float[4];
+                        for (int i = 2; i < numFloats; i++) {
+                            int mod = i % 4;
+                            switch (mod) {
+                                case 1:
+                                    // Log.v("Y", String.valueOf(points.get(i)));
+                                    a[1] = (points.get(i));
+                                    break;
+                                case 2:
+                                    // Log.v("Z", String.valueOf(points.get(i)));
+                                    a[2] = (points.get(i));
+                                    break;
+                                case 3:
+                                    a[3] = (points.get(i));
+                                    //Log.v("C", String.valueOf(points.get(i)));
+                                    break;
+                                case 0:
+                                    a[0] = (points.get(i));
+                                     //Log.v("X", String.valueOf(points.get(i)));
+                                 break;
+                            }
+                            if ((int)cloudData.timestamp % 5 == 0) {
+                                // Log.v("point", Arrays.toString(a));
+                            }
+                        }
+
                         TangoPoseData depthPose = TangoSupport.getPoseAtTime(cloudData.timestamp,
                                 TangoPoseData.COORDINATE_FRAME_START_OF_SERVICE,
                                 TangoPoseData.COORDINATE_FRAME_CAMERA_DEPTH,
@@ -108,6 +142,9 @@ public class TangoFloorplanner extends Tango.OnTangoUpdateListener {
                         if (depthPose.statusCode != TangoPoseData.POSE_VALID) {
                             Log.e(TAG, "couldn't extract a valid depth pose");
                             return;
+                        }
+                        if ((int)cloudData.timestamp % 5 == 0) {
+                            Log.d("!!!!point!!!",depthPose.getRotationAsFloats()[1]+"");
                         }
 
                         // Update the mesh and floorplan representation.
