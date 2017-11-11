@@ -52,11 +52,13 @@ import android.widget.Toast;
 
 import org.w3c.dom.Text;
 
+import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
 import static java.lang.Math.abs;
 import static java.lang.Math.round;
+import static java.lang.Math.tan;
 
 /**
  * An example showing how to use the 3D reconstruction floor planning features to create a
@@ -109,6 +111,15 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
     private float minFloor;
     private float maxFloor;
 
+    // the pointBuffer for get average depth
+    private FloatBuffer pointBuffer;
+    // the buffer for the current numpoints
+    private int numPoints;
+    // used in getAverageDepth
+    private float averageDepth;
+
+    //used for testing heading, maybe used if works.
+    private String headingAngle;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -297,10 +308,14 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
 
             @Override
             public void onPointCloudAvailable(TangoPointCloudData tangoPointCloudData) {
+                pointBuffer = tangoPointCloudData.points;
+                numPoints = tangoPointCloudData.numPoints;
+//                getAveragedDepth(pointBuffer, tangoPointCloudData.numPoints);
                 mTangoFloorplanner.onPointCloudAvailable(tangoPointCloudData);
             }
         });
     }
+
 
     /**
      * Method called each time right before the floorplan is drawn. It allows use of the Tango
@@ -426,8 +441,9 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
                     isStarted = true;
                 }
                 final String distanceText = String.format("%.2f", devToFloorDistance);
-
-
+                // Get the average Depth of points that is currently in front of the camera
+                averageDepth = getAveragedDepth(pointBuffer, numPoints);
+                headingAngle = getHeading(devicePose);
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -447,7 +463,17 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
                             currFloor = START;
                         }
 
-                        if (abs(currFloor - DESTINATION) < 0.1) {
+                        //reach platform
+                        if (averageDepth < 0.95) {
+                            //left and right distance
+                            //voice scan
+                            ShowPic("STOP");
+                            //double leftDistance = ;
+                            //if(){
+
+                            //}
+
+                        } else if (abs(currFloor - DESTINATION) < 0.1) {
                             ShowPic("STOP");
                         } else if (currFloor < DESTINATION) {
                             ShowPic("UP");
@@ -457,7 +483,8 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
                         mFloorText.setText(String.valueOf(round(currFloor)));
 
                         mHeightText.setText(ceilingHeightText);
-                        mDistanceText.setText(distanceText);
+                        //mDistanceText.setText(distanceText);
+                        mDistanceText.setText(String.valueOf(headingAngle));
                     }
                 });
             }
@@ -609,5 +636,48 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
                 down.setAlpha(1.0f);
                 break;
         }
+    }
+
+    /**
+     * Calculates the average depth from a point cloud buffer.
+     *
+     * @param pointCloudBuffer
+     * @param numPoints
+     * @return Average depth.
+     */
+    private float getAveragedDepth(FloatBuffer pointCloudBuffer, int numPoints) {
+        float totalZ = 0;
+        float averageZ = 0;
+        if (numPoints != 0) {
+            int numFloats = 4 * numPoints;
+            for (int i = 2; i < numFloats; i = i + 4) {
+                totalZ = totalZ + pointCloudBuffer.get(i);
+            }
+            averageZ = totalZ / numPoints;
+        }
+        return averageZ;
+    }
+
+    private String getHeading(TangoPoseData poseData){
+        double y = poseData.getRotationAsFloats()[1];
+        double w = poseData.getRotationAsFloats()[3];
+
+        double x1 = poseData.getTranslationAsFloats()[0];
+        double y1 = poseData.getTranslationAsFloats()[1];
+        double z1 = poseData.getTranslationAsFloats()[2];
+        double r = Math.sqrt(x1*x1 + y1*y1 + z1*z1);
+        double theta = Math.acos(z1/r);
+        double mag = Math.sqrt(w*w+y*y);
+        w /= mag;
+        y /= mag;
+        double angle = 2 * Math.acos(w);
+       // if (w < 0 || y < 0 &&) {
+
+        //} else {
+
+        //}
+
+        return w + "xia mian shi angle "+ angle + "theta " + theta + x1+ " " + y1+ " " + z1;
+
     }
 }

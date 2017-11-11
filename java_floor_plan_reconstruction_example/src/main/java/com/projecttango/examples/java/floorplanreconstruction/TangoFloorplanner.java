@@ -33,8 +33,9 @@ import android.os.HandlerThread;
 import android.util.Log;
 
 import java.nio.FloatBuffer;
-import java.util.Arrays;
 import java.util.List;
+
+import static java.lang.Math.*;
 
 /**
  * Uses the Tango Service data to build a floor plan 2D. Provides higher level functionality
@@ -143,9 +144,30 @@ public class TangoFloorplanner extends Tango.OnTangoUpdateListener {
                             Log.e(TAG, "couldn't extract a valid depth pose");
                             return;
                         }
-                        if ((int)cloudData.timestamp % 5 == 0) {
-                            Log.d("!!!!point!!!",depthPose.getRotationAsFloats()[1]+"");
+
+                        double x = depthPose.getRotationAsFloats()[0];
+                        double y = depthPose.getRotationAsFloats()[1];
+                        double z = depthPose.getRotationAsFloats()[2];
+                        double w = depthPose.getRotationAsFloats()[3];
+
+                        if(w < 0 && z < 0){
+
                         }
+
+                        //start hold phone to front
+
+                        // first determine he is on the platform
+                        //go up front distance change dramatically under 1m
+                        //go down less than 1m.
+
+                        //turn around and measure left and right
+                        //determine turning
+
+
+                        //proceed until reach 0.5m of wall
+                        //turn as needed
+
+                        //continue the climb
 
                         // Update the mesh and floorplan representation.
                         mTango3dReconstruction.updateFloorplan(cloudData, depthPose);
