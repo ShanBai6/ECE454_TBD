@@ -60,6 +60,7 @@ import java.util.List;
 import static java.lang.Math.abs;
 import static java.lang.Math.round;
 import static java.lang.Math.tan;
+import static java.lang.Thread.sleep;
 
 /**
  * An example showing how to use the 3D reconstruction floor planning features to create a
@@ -444,8 +445,10 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
                 final String distanceText = String.format("%.2f", devToFloorDistance);
                 // Get the average Depth of points that is currently in front of the camera
                 averageDepth = getAveragedDepth(pointBuffer, numPoints);
-                headingAngle = getHeading(devicePose);
+                // headingAngle = getHeading(devicePose);
 
+                // get the heading here
+                getHeading();
 
                 runOnUiThread(new Runnable() {
                     @Override
@@ -668,7 +671,12 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
      * @return 'l' / 'r' / others
      *          left  right  hasn't rotated yet
      */
-    private String getHeading(TangoPoseData poseData){
+
+    // Another thread that I need
+    private Thread t = null;
+
+
+    private void getHeading(){
 //        double y = poseData.getRotationAsFloats()[1];
 //        double w = poseData.getRotationAsFloats()[3];
 //
@@ -682,10 +690,54 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
 //        y /= mag;
 //        double angle = 2 * Math.acos(w);
         //float[] devicePosition = poseData.getTranslationAsFloats();
-        float[] deviceOrientation = poseData.getRotationAsFloats();
-        float yawRadians = yRotationFromQuaternion(deviceOrientation[0],
-                deviceOrientation[1], deviceOrientation[2],
-                deviceOrientation[3]);
+
+
+        Log.d("thread", "trying, I am trying to get heading");
+        t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                TangoPoseData devicePose;
+                // Synchronize against disconnecting while using the service.
+                synchronized (FloorPlanReconstructionActivity.this) {
+                    // Don't execute any Tango API actions if we're not connected to
+                    // the service.
+                    if (!mIsConnected) {
+                        return;
+                    }
+                    devicePose = TangoSupport.getPoseAtTime(0.0,
+                            TangoPoseData.COORDINATE_FRAME_START_OF_SERVICE,
+                            TangoPoseData.COORDINATE_FRAME_DEVICE,
+                            TangoSupport.ENGINE_OPENGL,
+                            TangoSupport.ENGINE_OPENGL,
+                            mDisplayRotation);
+                }
+                float[] deviceOrientation = devicePose.getRotationAsFloats();
+                float yawRadians1 = yRotationFromQuaternion(deviceOrientation[0],
+                        deviceOrientation[1], deviceOrientation[2],
+                        deviceOrientation[3]);
+
+                try {
+                    sleep(3000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                deviceOrientation = devicePose.getRotationAsFloats();
+                float yawRadians2 = yRotationFromQuaternion(deviceOrientation[0],
+                        deviceOrientation[1], deviceOrientation[2],
+                        deviceOrientation[3]);
+
+                // positive number
+                // left section [-3.14, x - 3.14 - 0.5] [x + 0.5, 3.14]
+                // right section [x - 3.14 + 0.5, 0][0, x - 0.5]
+
+                // negative number
+                // left section [x + 0.5, 0] [0 , x + 3.14 - 0.5]
+                // right section [-3.14, x - 0.5] [x+3.14 + 0.5, 3.14]
+                headingAngle = "Test";
+
+            }
+        });
        // if (w < 0 || y < 0 &&) {
 
         //} else {
@@ -693,16 +745,7 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
         //}
 
 //        return w + "xia mian shi angle "+ angle + "theta " + theta + x1+ " " + y1+ " " + z1;
-
-        // positive number
-        // left section [-3.14, x - 3.14 - 0.5] [x + 0.5, 3.14]
-        // right section [x - 3.14 + 0.5, 0][0, x - 0.5]
-
-        // negative number
-        // left section [x + 0.5, 0] [0 , x + 3.14 - 0.5]
-        // right section [-3.14, x - 0.5] [x+3.14 + 0.5, 3.14]
-        return "under construction";
-
+        
     }
 
 
