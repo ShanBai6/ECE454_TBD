@@ -145,14 +145,10 @@ public class TangoFloorplanner extends Tango.OnTangoUpdateListener {
                             return;
                         }
 
-                        double x = depthPose.getRotationAsFloats()[0];
-                        double y = depthPose.getRotationAsFloats()[1];
-                        double z = depthPose.getRotationAsFloats()[2];
-                        double w = depthPose.getRotationAsFloats()[3];
-
-                        if(w < 0 && z < 0){
-
-                        }
+//                        double x = depthPose.getRotationAsFloats()[0];
+//                        double y = depthPose.getRotationAsFloats()[1];
+//                        double z = depthPose.getRotationAsFloats()[2];
+//                        double w = depthPose.getRotationAsFloats()[3];
 
                         //start hold phone to front
 
@@ -168,6 +164,15 @@ public class TangoFloorplanner extends Tango.OnTangoUpdateListener {
                         //turn as needed
 
                         //continue the climb
+
+
+
+
+//                        float[] devicePosition = devicePose.getTranslationAsFloats();
+//                        float[] deviceOrientation = devicePose.getRotationAsFloats();
+//                        float yawRadians = yRotationFromQuaternion(deviceOrientation[0],
+//                                deviceOrientation[1], deviceOrientation[2],
+//                                deviceOrientation[3]);
 
                         // Update the mesh and floorplan representation.
                         mTango3dReconstruction.updateFloorplan(cloudData, depthPose);

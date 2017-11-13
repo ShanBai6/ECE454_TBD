@@ -32,6 +32,7 @@ import com.google.atap.tangoservice.TangoXyzIjData;
 import com.google.tango.support.TangoSupport;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -444,6 +445,8 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
                 // Get the average Depth of points that is currently in front of the camera
                 averageDepth = getAveragedDepth(pointBuffer, numPoints);
                 headingAngle = getHeading(devicePose);
+
+
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -515,6 +518,7 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
     /**
      * Set the display rotation.
      */
+    @SuppressLint("WrongConstant")
     private void setDisplayRotation() {
         Display display = getWindowManager().getDefaultDisplay();
         mDisplayRotation = display.getRotation();
@@ -658,26 +662,49 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
         return averageZ;
     }
 
+    /**
+     *
+     * @param poseData
+     * @return 'l' / 'r' / others
+     *          left  right  hasn't rotated yet
+     */
     private String getHeading(TangoPoseData poseData){
-        double y = poseData.getRotationAsFloats()[1];
-        double w = poseData.getRotationAsFloats()[3];
-
-        double x1 = poseData.getTranslationAsFloats()[0];
-        double y1 = poseData.getTranslationAsFloats()[1];
-        double z1 = poseData.getTranslationAsFloats()[2];
-        double r = Math.sqrt(x1*x1 + y1*y1 + z1*z1);
-        double theta = Math.acos(z1/r);
-        double mag = Math.sqrt(w*w+y*y);
-        w /= mag;
-        y /= mag;
-        double angle = 2 * Math.acos(w);
+//        double y = poseData.getRotationAsFloats()[1];
+//        double w = poseData.getRotationAsFloats()[3];
+//
+//        double x1 = poseData.getTranslationAsFloats()[0];
+//        double y1 = poseData.getTranslationAsFloats()[1];
+//        double z1 = poseData.getTranslationAsFloats()[2];
+//        double r = Math.sqrt(x1*x1 + y1*y1 + z1*z1);
+//        double theta = Math.acos(z1/r);
+//        double mag = Math.sqrt(w*w+y*y);
+//        w /= mag;
+//        y /= mag;
+//        double angle = 2 * Math.acos(w);
+        //float[] devicePosition = poseData.getTranslationAsFloats();
+        float[] deviceOrientation = poseData.getRotationAsFloats();
+        float yawRadians = yRotationFromQuaternion(deviceOrientation[0],
+                deviceOrientation[1], deviceOrientation[2],
+                deviceOrientation[3]);
        // if (w < 0 || y < 0 &&) {
 
         //} else {
 
         //}
 
-        return w + "xia mian shi angle "+ angle + "theta " + theta + x1+ " " + y1+ " " + z1;
+//        return w + "xia mian shi angle "+ angle + "theta " + theta + x1+ " " + y1+ " " + z1;
+
+        // positive number
+        // left section [-3.14, x - 3.14 - 0.5] [x + 0.5, 3.14]
+        // right section [x - 3.14 + 0.5, 0][0, x - 0.5]
+
+        // negative number
+        // left section [x + 0.5, 0] [0 , x + 3.14 - 0.5]
+        // right section [-3.14, x - 0.5] [x+3.14 + 0.5, 3.14]
+        return "under construction";
 
     }
+
+
 }
+
