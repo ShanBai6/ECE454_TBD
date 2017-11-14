@@ -110,6 +110,7 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
 
     private boolean clearClicked = false;
     private boolean isSet = false;
+    private boolean setRadians = false;
     private float minFloor;
     private float maxFloor;
 
@@ -122,6 +123,8 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
 
     //used for testing heading, maybe used if works.
     private String headingAngle;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -413,7 +416,7 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
 
             final String ceilingHeightText = String.format("%.2f", ceilingHeight);
             // Query current device pose and calculate the distance from it to the floor.
-            TangoPoseData devicePose;
+            final TangoPoseData devicePose;
             // Synchronize against disconnecting while using the service.
             synchronized (FloorPlanReconstructionActivity.this) {
                 // Don't execute any Tango API actions if we're not connected to
@@ -445,10 +448,17 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
                 final String distanceText = String.format("%.2f", devToFloorDistance);
                 // Get the average Depth of points that is currently in front of the camera
                 averageDepth = getAveragedDepth(pointBuffer, numPoints);
-                // headingAngle = getHeading(devicePose);
 
                 // get the heading here
-                getHeading();
+                 getHeading();
+                //heading is available here
+                //read headingAngle and then instruct turn right or left
+                if(headingAngle.equals("right")){
+
+                }
+                //go straight
+
+                //turn again when you see wall
 
                 runOnUiThread(new Runnable() {
                     @Override
@@ -471,6 +481,8 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
 
                         //reach platform
                         if (averageDepth < 0.95) {
+                            //save original radians
+
                             //left and right distance
                             //voice scan
                             ShowPic("STOP");
@@ -666,16 +678,10 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
     }
 
     /**
-     *
-     * @param poseData
+     * Get the heading or the turn direction of the user
      * @return 'l' / 'r' / others
      *          left  right  hasn't rotated yet
      */
-
-    // Another thread that I need
-    private Thread t = null;
-
-
     private void getHeading(){
 //        double y = poseData.getRotationAsFloats()[1];
 //        double w = poseData.getRotationAsFloats()[3];
@@ -693,34 +699,34 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
 
 
         Log.d("thread", "trying, I am trying to get heading");
-        t = new Thread(new Runnable() {
+        new Thread(new Runnable() {
             @Override
             public void run() {
-                TangoPoseData devicePose;
-                // Synchronize against disconnecting while using the service.
-                synchronized (FloorPlanReconstructionActivity.this) {
-                    // Don't execute any Tango API actions if we're not connected to
-                    // the service.
-                    if (!mIsConnected) {
-                        return;
-                    }
-                    devicePose = TangoSupport.getPoseAtTime(0.0,
+                TangoPoseData devicePose = TangoSupport.getPoseAtTime(0.0,
                             TangoPoseData.COORDINATE_FRAME_START_OF_SERVICE,
                             TangoPoseData.COORDINATE_FRAME_DEVICE,
                             TangoSupport.ENGINE_OPENGL,
                             TangoSupport.ENGINE_OPENGL,
                             mDisplayRotation);
-                }
+
                 float[] deviceOrientation = devicePose.getRotationAsFloats();
                 float yawRadians1 = yRotationFromQuaternion(deviceOrientation[0],
                         deviceOrientation[1], deviceOrientation[2],
                         deviceOrientation[3]);
 
                 try {
-                    sleep(3000);
+                    sleep(1000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
+
+                    devicePose = TangoSupport.getPoseAtTime(0.0,
+                            TangoPoseData.COORDINATE_FRAME_START_OF_SERVICE,
+                            TangoPoseData.COORDINATE_FRAME_DEVICE,
+                            TangoSupport.ENGINE_OPENGL,
+                            TangoSupport.ENGINE_OPENGL,
+                            mDisplayRotation);
+
 
                 deviceOrientation = devicePose.getRotationAsFloats();
                 float yawRadians2 = yRotationFromQuaternion(deviceOrientation[0],
@@ -730,14 +736,34 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
                 // positive number
                 // left section [-3.14, x - 3.14 - 0.5] [x + 0.5, 3.14]
                 // right section [x - 3.14 + 0.5, 0][0, x - 0.5]
-
+                if(yawRadians1 >= 0){
+                    if((yawRadians2 > -3.14 && yawRadians2 < yawRadians1 - 3.14 -0.5) || (yawRadians2 > yawRadians1 + 0.5 && yawRadians2 < 3.14)){
+                        headingAngle = "left";
+                    }
+                    else if((yawRadians2 < 0 && yawRadians2 > yawRadians1 - 3.14 + 0.5) || (yawRadians2 > 0 && yawRadians2 < yawRadians1 - 0.5)){
+                        headingAngle = "right";
+                    }
+                    else{
+                        headingAngle = "others";
+                    }
+                }
                 // negative number
                 // left section [x + 0.5, 0] [0 , x + 3.14 - 0.5]
                 // right section [-3.14, x - 0.5] [x+3.14 + 0.5, 3.14]
-                headingAngle = "Test";
+                else{
+                    if((yawRadians2 < 0 && yawRadians2 > yawRadians1 + 0.5) || (yawRadians2 > 0 && yawRadians2 < yawRadians1 + 3.14 - 0.5)){
+                        headingAngle = "left";
+                    }
+                    else if((yawRadians2 > -3.14 && yawRadians2 < yawRadians1 - 0.5) || ((yawRadians2 > yawRadians1 + 3.14 + 0.5) && yawRadians2 < 3.14)){
+                        headingAngle = "right";
+                    }
+                    else{
+                        headingAngle = "others";
+                    }
+                }
 
             }
-        });
+        }).start();
        // if (w < 0 || y < 0 &&) {
 
         //} else {
