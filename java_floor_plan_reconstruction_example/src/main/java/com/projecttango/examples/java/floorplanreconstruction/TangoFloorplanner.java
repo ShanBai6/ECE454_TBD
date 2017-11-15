@@ -46,6 +46,7 @@ public class TangoFloorplanner extends Tango.OnTangoUpdateListener {
 
     private static final String TAG = TangoFloorplanner.class.getSimpleName();
     private final TangoPointCloudManager mPointCloudBuffer;
+    int count = 0;
 
     private Tango3dReconstruction mTango3dReconstruction = null;
     private OnFloorplanAvailableListener mCallback = null;
@@ -128,7 +129,7 @@ public class TangoFloorplanner extends Tango.OnTangoUpdateListener {
                                      //Log.v("X", String.valueOf(points.get(i)));
                                  break;
                             }
-                            if ((int)cloudData.timestamp % 5 == 0) {
+                            if ((int)cloudData.timestamp % 3 == 0) {
                                 // Log.v("point", Arrays.toString(a));
                             }
                         }
@@ -143,8 +144,11 @@ public class TangoFloorplanner extends Tango.OnTangoUpdateListener {
                             Log.e(TAG, "couldn't extract a valid depth pose");
                             return;
                         }
-                        if ((int)cloudData.timestamp % 5 == 0) {
-                            Log.d("!!!!point!!!",depthPose.getRotationAsFloats()[1]+"");
+
+                        if ((int)cloudData.timestamp % 2 == 0) {
+                            Log.d("!!!!point!!!",depthPose.getRotationAsFloats()[2]+"#"+count+"");
+                            Log.d("!!!!point2!!!", depthPose.getRotationAsFloats()[0]+"#"+count+"");
+                            count++;
                         }
 
                         // Update the mesh and floorplan representation.

@@ -27,15 +27,11 @@ public class MainActivity extends Activity {
                     } catch (InterruptedException e) {
                     }
                 }
-
                 Intent intent = new Intent(MainActivity.this,
                         NavigationActivity.class);
                 startActivity(intent);
-
             }
         }).start();
-
-
     }
 
     public void onFirstFloorClicked(View v) {
