@@ -32,6 +32,7 @@ import com.google.atap.tangoservice.TangoXyzIjData;
 import com.google.tango.support.TangoSupport;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -52,11 +53,14 @@ import android.widget.Toast;
 
 import org.w3c.dom.Text;
 
+import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
 import static java.lang.Math.abs;
 import static java.lang.Math.round;
+import static java.lang.Math.tan;
+import static java.lang.Thread.sleep;
 
 /**
  * An example showing how to use the 3D reconstruction floor planning features to create a
@@ -106,8 +110,20 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
 
     private boolean clearClicked = false;
     private boolean isSet = false;
+    private boolean setRadians = false;
     private float minFloor;
     private float maxFloor;
+
+    // the pointBuffer for get average depth
+    private FloatBuffer pointBuffer;
+    // the buffer for the current numpoints
+    private int numPoints;
+    // used in getAverageDepth
+    private float averageDepth;
+
+    //used for testing heading, maybe used if works.
+    private String headingAngle;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -297,10 +313,14 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
 
             @Override
             public void onPointCloudAvailable(TangoPointCloudData tangoPointCloudData) {
+                pointBuffer = tangoPointCloudData.points;
+                numPoints = tangoPointCloudData.numPoints;
+//                getAveragedDepth(pointBuffer, tangoPointCloudData.numPoints);
                 mTangoFloorplanner.onPointCloudAvailable(tangoPointCloudData);
             }
         });
     }
+
 
     /**
      * Method called each time right before the floorplan is drawn. It allows use of the Tango
@@ -396,7 +416,7 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
 
             final String ceilingHeightText = String.format("%.2f", ceilingHeight);
             // Query current device pose and calculate the distance from it to the floor.
-            TangoPoseData devicePose;
+            final TangoPoseData devicePose;
             // Synchronize against disconnecting while using the service.
             synchronized (FloorPlanReconstructionActivity.this) {
                 // Don't execute any Tango API actions if we're not connected to
@@ -426,7 +446,19 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
                     isStarted = true;
                 }
                 final String distanceText = String.format("%.2f", devToFloorDistance);
+                // Get the average Depth of points that is currently in front of the camera
+                averageDepth = getAveragedDepth(pointBuffer, numPoints);
 
+                // get the heading here
+                 getHeading();
+                //heading is available here
+                //read headingAngle and then instruct turn right or left
+                if(headingAngle.equals("right")){
+
+                }
+                //go straight
+
+                //turn again when you see wall
 
                 runOnUiThread(new Runnable() {
                     @Override
@@ -447,7 +479,19 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
                             currFloor = START;
                         }
 
-                        if (abs(currFloor - DESTINATION) < 0.1) {
+                        //reach platform
+                        if (averageDepth < 0.95) {
+                            //save original radians
+
+                            //left and right distance
+                            //voice scan
+                            ShowPic("STOP");
+                            //double leftDistance = ;
+                            //if(){
+
+                            //}
+
+                        } else if (abs(currFloor - DESTINATION) < 0.1) {
                             ShowPic("STOP");
                         } else if (currFloor < DESTINATION) {
                             ShowPic("UP");
@@ -457,7 +501,8 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
                         mFloorText.setText(String.valueOf(round(currFloor)));
 
                         mHeightText.setText(ceilingHeightText);
-                        mDistanceText.setText(distanceText);
+                        //mDistanceText.setText(distanceText);
+                        mDistanceText.setText(String.valueOf(headingAngle));
                     }
                 });
             }
@@ -488,6 +533,7 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
     /**
      * Set the display rotation.
      */
+    @SuppressLint("WrongConstant")
     private void setDisplayRotation() {
         Display display = getWindowManager().getDefaultDisplay();
         mDisplayRotation = display.getRotation();
@@ -610,4 +656,124 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
                 break;
         }
     }
+
+    /**
+     * Calculates the average depth from a point cloud buffer.
+     *
+     * @param pointCloudBuffer
+     * @param numPoints
+     * @return Average depth.
+     */
+    private float getAveragedDepth(FloatBuffer pointCloudBuffer, int numPoints) {
+        float totalZ = 0;
+        float averageZ = 0;
+        if (numPoints != 0) {
+            int numFloats = 4 * numPoints;
+            for (int i = 2; i < numFloats; i = i + 4) {
+                totalZ = totalZ + pointCloudBuffer.get(i);
+            }
+            averageZ = totalZ / numPoints;
+        }
+        return averageZ;
+    }
+
+    /**
+     * Get the heading or the turn direction of the user
+     * @return 'l' / 'r' / others
+     *          left  right  hasn't rotated yet
+     */
+    private void getHeading(){
+//        double y = poseData.getRotationAsFloats()[1];
+//        double w = poseData.getRotationAsFloats()[3];
+//
+//        double x1 = poseData.getTranslationAsFloats()[0];
+//        double y1 = poseData.getTranslationAsFloats()[1];
+//        double z1 = poseData.getTranslationAsFloats()[2];
+//        double r = Math.sqrt(x1*x1 + y1*y1 + z1*z1);
+//        double theta = Math.acos(z1/r);
+//        double mag = Math.sqrt(w*w+y*y);
+//        w /= mag;
+//        y /= mag;
+//        double angle = 2 * Math.acos(w);
+        //float[] devicePosition = poseData.getTranslationAsFloats();
+
+
+        Log.d("thread", "trying, I am trying to get heading");
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                TangoPoseData devicePose = TangoSupport.getPoseAtTime(0.0,
+                            TangoPoseData.COORDINATE_FRAME_START_OF_SERVICE,
+                            TangoPoseData.COORDINATE_FRAME_DEVICE,
+                            TangoSupport.ENGINE_OPENGL,
+                            TangoSupport.ENGINE_OPENGL,
+                            mDisplayRotation);
+
+                float[] deviceOrientation = devicePose.getRotationAsFloats();
+                float yawRadians1 = yRotationFromQuaternion(deviceOrientation[0],
+                        deviceOrientation[1], deviceOrientation[2],
+                        deviceOrientation[3]);
+
+                try {
+                    sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                    devicePose = TangoSupport.getPoseAtTime(0.0,
+                            TangoPoseData.COORDINATE_FRAME_START_OF_SERVICE,
+                            TangoPoseData.COORDINATE_FRAME_DEVICE,
+                            TangoSupport.ENGINE_OPENGL,
+                            TangoSupport.ENGINE_OPENGL,
+                            mDisplayRotation);
+
+
+                deviceOrientation = devicePose.getRotationAsFloats();
+                float yawRadians2 = yRotationFromQuaternion(deviceOrientation[0],
+                        deviceOrientation[1], deviceOrientation[2],
+                        deviceOrientation[3]);
+
+                // positive number
+                // left section [-3.14, x - 3.14 - 0.5] [x + 0.5, 3.14]
+                // right section [x - 3.14 + 0.5, 0][0, x - 0.5]
+                if(yawRadians1 >= 0){
+                    if((yawRadians2 > -3.14 && yawRadians2 < yawRadians1 - 3.14 -0.5) || (yawRadians2 > yawRadians1 + 0.5 && yawRadians2 < 3.14)){
+                        headingAngle = "left";
+                    }
+                    else if((yawRadians2 < 0 && yawRadians2 > yawRadians1 - 3.14 + 0.5) || (yawRadians2 > 0 && yawRadians2 < yawRadians1 - 0.5)){
+                        headingAngle = "right";
+                    }
+                    else{
+                        headingAngle = "others";
+                    }
+                }
+                // negative number
+                // left section [x + 0.5, 0] [0 , x + 3.14 - 0.5]
+                // right section [-3.14, x - 0.5] [x+3.14 + 0.5, 3.14]
+                else{
+                    if((yawRadians2 < 0 && yawRadians2 > yawRadians1 + 0.5) || (yawRadians2 > 0 && yawRadians2 < yawRadians1 + 3.14 - 0.5)){
+                        headingAngle = "left";
+                    }
+                    else if((yawRadians2 > -3.14 && yawRadians2 < yawRadians1 - 0.5) || ((yawRadians2 > yawRadians1 + 3.14 + 0.5) && yawRadians2 < 3.14)){
+                        headingAngle = "right";
+                    }
+                    else{
+                        headingAngle = "others";
+                    }
+                }
+
+            }
+        }).start();
+       // if (w < 0 || y < 0 &&) {
+
+        //} else {
+
+        //}
+
+//        return w + "xia mian shi angle "+ angle + "theta " + theta + x1+ " " + y1+ " " + z1;
+        
+    }
+
+
 }
+

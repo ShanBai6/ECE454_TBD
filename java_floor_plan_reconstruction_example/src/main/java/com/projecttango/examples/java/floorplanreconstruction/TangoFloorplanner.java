@@ -33,8 +33,9 @@ import android.os.HandlerThread;
 import android.util.Log;
 
 import java.nio.FloatBuffer;
-import java.util.Arrays;
 import java.util.List;
+
+import static java.lang.Math.*;
 
 /**
  * Uses the Tango Service data to build a floor plan 2D. Provides higher level functionality
@@ -46,7 +47,6 @@ public class TangoFloorplanner extends Tango.OnTangoUpdateListener {
 
     private static final String TAG = TangoFloorplanner.class.getSimpleName();
     private final TangoPointCloudManager mPointCloudBuffer;
-    int count = 0;
 
     private Tango3dReconstruction mTango3dReconstruction = null;
     private OnFloorplanAvailableListener mCallback = null;
@@ -129,7 +129,7 @@ public class TangoFloorplanner extends Tango.OnTangoUpdateListener {
                                      //Log.v("X", String.valueOf(points.get(i)));
                                  break;
                             }
-                            if ((int)cloudData.timestamp % 3 == 0) {
+                            if ((int)cloudData.timestamp % 5 == 0) {
                                 // Log.v("point", Arrays.toString(a));
                             }
                         }
@@ -145,11 +145,34 @@ public class TangoFloorplanner extends Tango.OnTangoUpdateListener {
                             return;
                         }
 
-                        if ((int)cloudData.timestamp % 2 == 0) {
-                            Log.d("!!!!point!!!",depthPose.getRotationAsFloats()[2]+"#"+count+"");
-                            Log.d("!!!!point2!!!", depthPose.getRotationAsFloats()[0]+"#"+count+"");
-                            count++;
-                        }
+//                        double x = depthPose.getRotationAsFloats()[0];
+//                        double y = depthPose.getRotationAsFloats()[1];
+//                        double z = depthPose.getRotationAsFloats()[2];
+//                        double w = depthPose.getRotationAsFloats()[3];
+
+                        //start hold phone to front
+
+                        // first determine he is on the platform
+                        //go up front distance change dramatically under 1m
+                        //go down less than 1m.
+
+                        //turn around and measure left and right
+                        //determine turning
+
+
+                        //proceed until reach 0.5m of wall
+                        //turn as needed
+
+                        //continue the climb
+
+
+
+
+//                        float[] devicePosition = devicePose.getTranslationAsFloats();
+//                        float[] deviceOrientation = devicePose.getRotationAsFloats();
+//                        float yawRadians = yRotationFromQuaternion(deviceOrientation[0],
+//                                deviceOrientation[1], deviceOrientation[2],
+//                                deviceOrientation[3]);
 
                         // Update the mesh and floorplan representation.
                         mTango3dReconstruction.updateFloorplan(cloudData, depthPose);
