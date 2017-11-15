@@ -1,0 +1,143 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context=".MainActivity" >
+
+    <Button
+        android:id="@+id/button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/button1"
+        android:layout_alignBottom="@+id/button1"
+        android:layout_marginStart="18dp"
+        android:layout_toEndOf="@+id/button1"
+        android:onClick="onVoiceClick"
+        android:text="Voice" />
+
+    <TextView
+        android:id="@+id/note1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginLeft="15dp"
+        android:layout_marginTop="21dp"
+        android:text="Insert to DB"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+
+    <TextView
+        android:id="@+id/noteInKey"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/note1"
+        android:layout_below="@+id/note1"
+        android:layout_marginTop="20dp"
+        android:text="Key"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <EditText
+        android:id="@+id/fieldInKey"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/noteInKey"
+        android:layout_marginLeft="16dp"
+        android:layout_toRightOf="@+id/noteInVal"
+        android:ems="10"
+        />
+
+    <TextView
+        android:id="@+id/noteInVal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/noteInKey"
+        android:layout_below="@+id/noteInKey"
+        android:layout_marginTop="20dp"
+        android:text="Value"
+        android:inputType="number"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <EditText
+        android:id="@+id/fieldInVal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/noteInVal"
+        android:layout_alignLeft="@+id/fieldInKey"
+        android:ems="10"
+        android:inputType="number" />
+
+    <TextView
+        android:id="@+id/note2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/noteInVal"
+        android:layout_centerVertical="true"
+        android:text="Query DB"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+
+    <TextView
+        android:id="@+id/noteQKey"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/note2"
+        android:layout_below="@+id/note2"
+        android:layout_marginTop="27dp"
+        android:text="Key"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <EditText
+        android:id="@+id/inQKey"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/noteQKey"
+        android:layout_alignLeft="@+id/fieldInVal"
+        android:ems="10"
+        />
+
+
+
+    <TextView
+        android:id="@+id/outVal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/noteQKey"
+        android:layout_below="@+id/noteQKey"
+        android:layout_marginTop="21dp"
+        android:text="Value: "
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <Button
+        android:id="@+id/button1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="34dp"
+        android:text="Go!" />
+
+    <Button
+        android:id="@+id/button2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/button1"
+        android:layout_alignParentStart="true"
+        android:text="SaySomething"
+        android:onClick="saySomething"/>
+
+    <TextView
+        android:id="@+id/outVal1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Value: "
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:layout_alignBaseline="@+id/outVal"
+        android:layout_alignBottom="@+id/outVal"
+        android:layout_toEndOf="@+id/note2" />
+
+
+
+</RelativeLayout>
