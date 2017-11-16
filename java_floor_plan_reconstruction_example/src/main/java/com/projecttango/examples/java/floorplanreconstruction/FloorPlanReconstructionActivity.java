@@ -473,24 +473,28 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
                             currFloor = START;
                         }
 
-                        if (averageDepth < 0.95 && averageDepth > 0.3) {
+                        if (averageDepth < 0.95 && averageDepth > 0.65) {
                             //VOICE: go forward, you have reached the platform
                             ShowPic("UP");
                             //clear the parameter
                             maxRadians = 0;
                             maxDistance = 0;
-                        } else if (averageDepth < 0.3) {
+                        } else if (averageDepth <= 0.65) {
                             //VOICE: stop now and scan left and right
                             ShowPic("STOP");
 
                             //record max distance and radians pairs on left and right
                             getHeading();
+                            try {
+                                sleep(500);
+                            } catch (InterruptedException e) {
+                            }
                             //determine the turn
                             String turn = determineHeading();
-                            if(turn.equals("LEFT")){
+                            if(turn.equals("left")){
                                 ShowPic("LEFT");
                             }
-                            else if(turn.equals("RIGHT")){
+                            else if(turn.equals("right")){
                                 ShowPic("RIGHT");
                             }
                             else{
@@ -500,6 +504,10 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
                         } else {
                             if (abs(currFloor - DESTINATION) < 0.1) {
                                 ShowPic("STOP");
+                                try {
+                                    this.wait();
+                                } catch (InterruptedException e) {
+                                }
                             } else if (currFloor < DESTINATION) {
                                 ShowPic("UP");
                             } else {
