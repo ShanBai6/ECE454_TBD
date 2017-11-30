@@ -23,7 +23,7 @@ public class MainActivity extends Activity {
             public void run() {
                 while (numOfClick < 2) {
                     try {
-                        sleep(5);
+                        sleep(1);
                     } catch (InterruptedException e) {
                     }
                 }

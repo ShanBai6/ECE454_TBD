@@ -155,59 +155,59 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
         down = (ImageView) findViewById(R.id.imageView5);
         stop = (ImageView) findViewById(R.id.imageView4);
 
-        DisplayManager displayManager = (DisplayManager) getSystemService(DISPLAY_SERVICE);
-        if (displayManager != null) {
-            displayManager.registerDisplayListener(new DisplayManager.DisplayListener() {
-                @Override
-                public void onDisplayAdded(int displayId) {
-                }
+        //DisplayManager displayManager = (DisplayManager) getSystemService(DISPLAY_SERVICE);
+        //if (displayManager != null) {
+           // displayManager.registerDisplayListener(new DisplayManager.DisplayListener() {
+             //   @Override
+              //  public void onDisplayAdded(int displayId) {
+               // }
 
-                @Override
-                public void onDisplayChanged(int displayId) {
-                    synchronized (this) {
-                        setDisplayRotation();
-                    }
-                }
+                //@Override
+                //public void onDisplayChanged(int displayId) {
+                  //  synchronized (this) {
+                    //    setDisplayRotation();
+                    //}
+                //}
 
-                @Override
-                public void onDisplayRemoved(int displayId) {
-                }
-            }, null);
-        }
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-
-        // Check and request camera permission at run time.
-        if (checkAndRequestPermissions()) {
-            bindTangoService();
-        }
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        // Synchronize against disconnecting while the service is being used in the OpenGL thread or
-        // in the UI thread.
-        synchronized (this) {
-            try {
-                if (mTangoFloorplanner != null) {
-                    mTangoFloorplanner.stopFloorplanning();
-                    mTangoFloorplanner.resetFloorplan();
-                    mTangoFloorplanner.release();
-                    mTangoFloorplanner = null;
-                }
-                if (mTango != null) {
-                    mTango.disconnect();
-                }
-                mIsConnected = false;
-                mIsPaused = true;
-            } catch (TangoErrorException e) {
-                Log.e(TAG, getString(R.string.exception_tango_error), e);
-            }
-        }
+                //@Override
+                //public void onDisplayRemoved(int displayId) {
+                //}
+            //}, null);
+        //}
+    //}
+//
+//    @Override
+//    protected void onStart() {
+//        super.onStart();
+//
+//        // Check and request camera permission at run time.
+//        if (checkAndRequestPermissions()) {
+//            bindTangoService();
+//        }
+//    }
+//
+//    @Override
+//    protected void onStop() {
+//        super.onStop();
+//        // Synchronize against disconnecting while the service is being used in the OpenGL thread or
+//        // in the UI thread.
+//        synchronized (this) {
+//            try {
+//                if (mTangoFloorplanner != null) {
+//                    mTangoFloorplanner.stopFloorplanning();
+//                    mTangoFloorplanner.resetFloorplan();
+//                    mTangoFloorplanner.release();
+//                    mTangoFloorplanner = null;
+//                }
+//                if (mTango != null) {
+//                    mTango.disconnect();
+//                }
+//                mIsConnected = false;
+//                mIsPaused = true;
+//            } catch (TangoErrorException e) {
+//                Log.e(TAG, getString(R.string.exception_tango_error), e);
+//            }
+//        }
     }
 
     /**

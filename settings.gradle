@@ -2,3 +2,4 @@ include ':hello_area_description', ':UI', ':java_examples_utils', ':java_floor_p
 include ':hello_depth_perception'
 include ':hello_motion_tracking'
 include ':hello_video'
+
