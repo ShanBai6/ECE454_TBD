@@ -57,8 +57,10 @@ import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import static java.lang.Math.abs;
+import static java.lang.Math.max;
 import static java.lang.Math.round;
 import static java.lang.Math.tan;
 import static java.lang.Thread.sleep;
@@ -128,6 +130,9 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
     //maximum radians and distance
     private double maxDistance;
     private double maxRadians;
+
+    //Number of turns
+    private int numOfTurn = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -482,7 +487,7 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
                         } else if (averageDepth <= 0.65) {
                             //VOICE: stop now and scan left and right
                             ShowPic("STOP");
-
+                            numOfTurn ++;
                             //record max distance and radians pairs on left and right
                             getHeading();
                             try {
@@ -502,6 +507,12 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
                             }
                             //
                         } else {
+                            //if u have faced the stairs
+                            if(numOfTurn >= 2){
+                                if(determineStairS(pointBuffer)){
+                                   //voice go 2 steps
+                                }
+                            }
                             if (abs(currFloor - DESTINATION) < 0.1) {
                                 ShowPic("STOP");
                                 try {
@@ -695,6 +706,56 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
         return averageZ;
     }
 
+    private boolean determineStairS(FloatBuffer pointCloundBuffer){
+        int counter = 0;
+        for(int i = 0;i < 100;i++){
+            if(determineStairMS(pointCloundBuffer)){
+                counter++;
+            }
+        }
+        //set threshold
+        if(counter >= 50){
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Check stair existence by point cloud
+     *
+     * @param pointCloudBuffer
+     * @return If there is a stairs in front.
+     */
+    private boolean determineStairMS(FloatBuffer pointCloudBuffer){
+        float[] pointData = pointCloudBuffer.array();
+
+        ArrayList<Float> yData = new ArrayList<>();
+        //extract y
+        for(int i = 0;i < pointData.length;i++){
+            if(i % 4 == 2) {
+                yData.add(pointData[i]);
+            }
+        }
+        //pick 3 points for each ms
+        Random random = new Random();
+        int x = random.nextInt(yData.size());
+        int y = random.nextInt(yData.size());
+        int z = random.nextInt(yData.size());
+
+        float one = yData.get(x);
+        float two = yData.get(y);
+        float three = yData.get(z);
+
+        float epsilon = 0.1f * max(abs(x-y), abs(y-z));
+        //compare if any two pair has same difference
+        if(abs(x-y) - abs(y-z) < epsilon
+                || abs(x-y) - abs(x-z) < epsilon
+                || abs(y-z) - abs(x-z) < epsilon){
+            return true;
+        }
+        return false;
+    }
+
     private String determineHeading() {
         //get current pose
         TangoPoseData devicePose = TangoSupport.getPoseAtTime(0.0,
@@ -768,5 +829,7 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
             }
         }).start();
     }
+
+
 }
 
