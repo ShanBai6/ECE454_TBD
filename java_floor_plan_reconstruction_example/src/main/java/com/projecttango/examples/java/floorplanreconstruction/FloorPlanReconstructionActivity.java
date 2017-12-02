@@ -179,40 +179,40 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
                 //}
             //}, null);
         //}
-    //}
-//
-//    @Override
-//    protected void onStart() {
-//        super.onStart();
-//
-//        // Check and request camera permission at run time.
-//        if (checkAndRequestPermissions()) {
-//            bindTangoService();
-//        }
-//    }
-//
-//    @Override
-//    protected void onStop() {
-//        super.onStop();
-//        // Synchronize against disconnecting while the service is being used in the OpenGL thread or
-//        // in the UI thread.
-//        synchronized (this) {
-//            try {
-//                if (mTangoFloorplanner != null) {
-//                    mTangoFloorplanner.stopFloorplanning();
-//                    mTangoFloorplanner.resetFloorplan();
-//                    mTangoFloorplanner.release();
-//                    mTangoFloorplanner = null;
-//                }
-//                if (mTango != null) {
-//                    mTango.disconnect();
-//                }
-//                mIsConnected = false;
-//                mIsPaused = true;
-//            } catch (TangoErrorException e) {
-//                Log.e(TAG, getString(R.string.exception_tango_error), e);
-//            }
-//        }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        // Check and request camera permission at run time.
+        if (checkAndRequestPermissions()) {
+            bindTangoService();
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        // Synchronize against disconnecting while the service is being used in the OpenGL thread or
+        // in the UI thread.
+        synchronized (this) {
+            try {
+                if (mTangoFloorplanner != null) {
+                    mTangoFloorplanner.stopFloorplanning();
+                    mTangoFloorplanner.resetFloorplan();
+                    mTangoFloorplanner.release();
+                    mTangoFloorplanner = null;
+                }
+                if (mTango != null) {
+                    mTango.disconnect();
+                }
+                mIsConnected = false;
+                mIsPaused = true;
+            } catch (TangoErrorException e) {
+                Log.e(TAG, getString(R.string.exception_tango_error), e);
+            }
+        }
     }
 
     /**
@@ -509,8 +509,10 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
                         } else {
                             //if u have faced the stairs
                             if(numOfTurn >= 2){
-                                if(determineStairS(pointBuffer)){
+                                Toast.makeText(FloorPlanReconstructionActivity.this, "HERE????", Toast.LENGTH_LONG);
+                                if(determineStairS(pointBuffer, numPoints)){
                                    //voice go 2 steps
+                                    Toast.makeText(FloorPlanReconstructionActivity.this, "WORK????", Toast.LENGTH_LONG);
                                 }
                             }
                             if (abs(currFloor - DESTINATION) < 0.1) {
@@ -706,10 +708,10 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
         return averageZ;
     }
 
-    private boolean determineStairS(FloatBuffer pointCloundBuffer){
+    private boolean determineStairS(FloatBuffer pointCloundBuffer, int numPoints){
         int counter = 0;
         for(int i = 0;i < 100;i++){
-            if(determineStairMS(pointCloundBuffer)){
+            if(determineStairMS(pointCloundBuffer, numPoints)){
                 counter++;
             }
         }
@@ -726,14 +728,13 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
      * @param pointCloudBuffer
      * @return If there is a stairs in front.
      */
-    private boolean determineStairMS(FloatBuffer pointCloudBuffer){
-        float[] pointData = pointCloudBuffer.array();
+    private boolean determineStairMS(FloatBuffer pointCloudBuffer, int numPoints){
 
         ArrayList<Float> yData = new ArrayList<>();
         //extract y
-        for(int i = 0;i < pointData.length;i++){
-            if(i % 4 == 2) {
-                yData.add(pointData[i]);
+        for(int i = 2;i < 4*numPoints;i++){
+            if(i % 4 == 1) {
+                yData.add(pointCloudBuffer.get(i));
             }
         }
         //pick 3 points for each ms
@@ -748,9 +749,9 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
 
         float epsilon = 0.1f * max(abs(x-y), abs(y-z));
         //compare if any two pair has same difference
-        if(abs(x-y) - abs(y-z) < epsilon
-                || abs(x-y) - abs(x-z) < epsilon
-                || abs(y-z) - abs(x-z) < epsilon){
+        if(abs(one-two) - abs(two-three) < epsilon
+                || abs(one-two) - abs(one-three) < epsilon
+                || abs(two-three) - abs(one-three) < epsilon){
             return true;
         }
         return false;
