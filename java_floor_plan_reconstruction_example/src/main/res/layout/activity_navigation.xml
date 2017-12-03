@@ -14,6 +14,19 @@
         android:src="@drawable/uparrow"
         android:contentDescription="uparrow"/>
 
+    <TextView
+        android:id="@+id/TEST"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="TextView" />
+
+    <Button
+        android:id="@+id/speechBtn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Speech"
+        android:onClick="onSpeechButtonClicked"/>
+
     <ImageView
         android:id="@+id/imageView7"
         android:layout_width="match_parent"

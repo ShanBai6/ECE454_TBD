@@ -272,9 +272,9 @@ public class MainActivity extends Activity {
     public void saySomething(View v){
         //speaker.allow(true);
         speaker.allow(true);
-        speaker.pause(LONG_DURATION);
+        //speaker.pause(LONG_DURATION);
         speaker.speak("this is a test FUCK");
-        speaker.pause(SHORT_DURATION);
+       // speaker.pause(SHORT_DURATION);
     }
 
     @Override

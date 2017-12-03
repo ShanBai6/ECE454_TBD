@@ -57,10 +57,8 @@ import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 
 import static java.lang.Math.abs;
-import static java.lang.Math.max;
 import static java.lang.Math.round;
 import static java.lang.Math.tan;
 import static java.lang.Thread.sleep;
@@ -131,9 +129,6 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
     private double maxDistance;
     private double maxRadians;
 
-    //Number of turns
-    private int numOfTurn = 0;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -179,40 +174,40 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
                 //}
             //}, null);
         //}
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-
-        // Check and request camera permission at run time.
-        if (checkAndRequestPermissions()) {
-            bindTangoService();
-        }
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        // Synchronize against disconnecting while the service is being used in the OpenGL thread or
-        // in the UI thread.
-        synchronized (this) {
-            try {
-                if (mTangoFloorplanner != null) {
-                    mTangoFloorplanner.stopFloorplanning();
-                    mTangoFloorplanner.resetFloorplan();
-                    mTangoFloorplanner.release();
-                    mTangoFloorplanner = null;
-                }
-                if (mTango != null) {
-                    mTango.disconnect();
-                }
-                mIsConnected = false;
-                mIsPaused = true;
-            } catch (TangoErrorException e) {
-                Log.e(TAG, getString(R.string.exception_tango_error), e);
-            }
-        }
+    //}
+//
+//    @Override
+//    protected void onStart() {
+//        super.onStart();
+//
+//        // Check and request camera permission at run time.
+//        if (checkAndRequestPermissions()) {
+//            bindTangoService();
+//        }
+//    }
+//
+//    @Override
+//    protected void onStop() {
+//        super.onStop();
+//        // Synchronize against disconnecting while the service is being used in the OpenGL thread or
+//        // in the UI thread.
+//        synchronized (this) {
+//            try {
+//                if (mTangoFloorplanner != null) {
+//                    mTangoFloorplanner.stopFloorplanning();
+//                    mTangoFloorplanner.resetFloorplan();
+//                    mTangoFloorplanner.release();
+//                    mTangoFloorplanner = null;
+//                }
+//                if (mTango != null) {
+//                    mTango.disconnect();
+//                }
+//                mIsConnected = false;
+//                mIsPaused = true;
+//            } catch (TangoErrorException e) {
+//                Log.e(TAG, getString(R.string.exception_tango_error), e);
+//            }
+//        }
     }
 
     /**
@@ -487,7 +482,7 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
                         } else if (averageDepth <= 0.65) {
                             //VOICE: stop now and scan left and right
                             ShowPic("STOP");
-                            numOfTurn ++;
+
                             //record max distance and radians pairs on left and right
                             getHeading();
                             try {
@@ -507,14 +502,6 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
                             }
                             //
                         } else {
-                            //if u have faced the stairs
-                            if(numOfTurn >= 2){
-                                Toast.makeText(FloorPlanReconstructionActivity.this, "HERE????", Toast.LENGTH_LONG);
-                                if(determineStairS(pointBuffer, numPoints)){
-                                   //voice go 2 steps
-                                    Toast.makeText(FloorPlanReconstructionActivity.this, "WORK????", Toast.LENGTH_LONG);
-                                }
-                            }
                             if (abs(currFloor - DESTINATION) < 0.1) {
                                 ShowPic("STOP");
                                 try {
@@ -708,55 +695,6 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
         return averageZ;
     }
 
-    private boolean determineStairS(FloatBuffer pointCloundBuffer, int numPoints){
-        int counter = 0;
-        for(int i = 0;i < 100;i++){
-            if(determineStairMS(pointCloundBuffer, numPoints)){
-                counter++;
-            }
-        }
-        //set threshold
-        if(counter >= 50){
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * Check stair existence by point cloud
-     *
-     * @param pointCloudBuffer
-     * @return If there is a stairs in front.
-     */
-    private boolean determineStairMS(FloatBuffer pointCloudBuffer, int numPoints){
-
-        ArrayList<Float> yData = new ArrayList<>();
-        //extract y
-        for(int i = 2;i < 4*numPoints;i++){
-            if(i % 4 == 1) {
-                yData.add(pointCloudBuffer.get(i));
-            }
-        }
-        //pick 3 points for each ms
-        Random random = new Random();
-        int x = random.nextInt(yData.size());
-        int y = random.nextInt(yData.size());
-        int z = random.nextInt(yData.size());
-
-        float one = yData.get(x);
-        float two = yData.get(y);
-        float three = yData.get(z);
-
-        float epsilon = 0.1f * max(abs(x-y), abs(y-z));
-        //compare if any two pair has same difference
-        if(abs(one-two) - abs(two-three) < epsilon
-                || abs(one-two) - abs(one-three) < epsilon
-                || abs(two-three) - abs(one-three) < epsilon){
-            return true;
-        }
-        return false;
-    }
-
     private String determineHeading() {
         //get current pose
         TangoPoseData devicePose = TangoSupport.getPoseAtTime(0.0,
@@ -830,7 +768,5 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
             }
         }).start();
     }
-
-
 }
 

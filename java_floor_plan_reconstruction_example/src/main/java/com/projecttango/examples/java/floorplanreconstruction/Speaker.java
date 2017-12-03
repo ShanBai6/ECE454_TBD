@@ -1,4 +1,9 @@
-package edu.wisc.ece.ece454minilab7;
+package com.projecttango.examples.java.floorplanreconstruction;
+
+/**
+ * Created by ECE_STUDENT on 11/15/2017.
+ */
+
 
 import android.content.Context;
 import android.media.AudioManager;
