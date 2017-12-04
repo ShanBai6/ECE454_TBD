@@ -49,4 +49,11 @@
         android:onClick="onFourthFloorClicked"
         android:text="@string/fourth_floor" />
 
+    <Button
+        android:id="@+id/speechBtn"
+        android:layout_width="match_parent"
+        android:layout_height="182dp"
+        android:onClick="onSpeechButtonClicked"
+        android:text="Speech" />
+
 </LinearLayout>
