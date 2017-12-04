@@ -273,7 +273,7 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
     }
 
 
-    
+
 
     //
     private void checkTTS(){
