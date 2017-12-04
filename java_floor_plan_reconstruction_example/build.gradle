@@ -17,7 +17,7 @@ android {
 
     externalNativeBuild {
         ndkBuild {
-            path 'src/main/jni/tango_geometry_detection/Android.mk'
+            path 'src/main/jni/Android.mk'
         }
     }
     buildTypes {

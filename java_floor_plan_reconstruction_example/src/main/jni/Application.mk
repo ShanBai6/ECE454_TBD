@@ -12,26 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-LOCAL_PATH := $(call my-dir)
-PROJECT_ROOT:= $(LOCAL_PATH)/../../../../..
-
-include $(CLEAR_VARS)
-LOCAL_MODULE := tango_geometry_detection
-LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/include
-
-ifeq ($(TARGET_ARCH), x86)
-	LOCAL_SRC_FILES := lib/x86/libtango_geometry_detection.so
-endif
-
-ifeq ($(TARGET_ARCH), arm64)
-	LOCAL_SRC_FILES := lib/arm64-v8a/libtango_geometry_detection.so
-endif
-
-ifeq ($(TARGET_ARCH), arm)
-	LOCAL_SRC_FILES := lib/armeabi-v7a/libtango_geometry_detection.so
-endif
-
-include $(PREBUILT_SHARED_LIBRARY)
-
-$(call import-add-path,$(PROJECT_ROOT))
-$(call import-module,tango_client_api)
+APP_ABI := armeabi-v7a arm64-v8a
+APP_STL := gnustl_static
+APP_PLATFORM := android-19
