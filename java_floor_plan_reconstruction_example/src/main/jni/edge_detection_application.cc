@@ -205,7 +205,7 @@ namespace tango_edge_detection {
       TangoErrorType ret =
               TangoService_connectOnPointCloudAvailable(OnPointCloudAvailableRouter);
       if (ret != TANGO_SUCCESS) {
-        LOGE("Failed to connected to depth callback.");
+        LOGE("Failed to connected to point cloud callback.");
         std::exit(EXIT_SUCCESS);
       }
 
@@ -403,4 +403,4 @@ namespace tango_edge_detection {
       return TANGO_SUCCESS;
     }
 
-}  // namespace tango-edge-detection
+}  // namespace tango-edge-detection        

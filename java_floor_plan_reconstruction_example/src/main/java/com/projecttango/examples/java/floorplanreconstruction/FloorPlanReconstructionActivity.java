@@ -53,6 +53,7 @@ import android.view.Display;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.view.MotionEvent;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -148,6 +149,7 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        TangoJNINative.onCreate(this);
         //setContentView(R.layout.activity_main);
         setContentView(R.layout.activity_navigation);
         TypedValue typedValue = new TypedValue();
@@ -847,6 +849,20 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
         }).start();
     }
 
-
+    @Override
+    public boolean onTouchEvent(final MotionEvent event) {
+        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            // Ensure that handling of the touch event is run on the GL thread
+            // rather than Android UI thread. This ensures we can modify
+            // rendering state without locking.  This event triggers a plane
+            // fit.
+            Log.v("!!!!!!!!!!!!!!y!!!!!!", ""+event.getY());
+            Log.v("!!!!!!!!!!!!!!x!!!!!!", ""+event.getX());
+            int r = TangoJNINative.onTouchEvent(event.getX(), event.getY());
+            Log.v("jint", ""+r);
+        }
+        return super.onTouchEvent(event);
+    }
 }
+
 

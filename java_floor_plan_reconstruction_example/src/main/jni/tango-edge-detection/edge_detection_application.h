@@ -170,8 +170,6 @@ namespace tango_edge_detection {
         // A manger to keep track of the camera image.
         TangoSupport_ImageBufferManager* image_buffer_manager_;
 
-        // Mutex to prevent re-entry of marker detection thread.
-        std::mutex marker_detection_thread_mutex_;
 
     };
 
