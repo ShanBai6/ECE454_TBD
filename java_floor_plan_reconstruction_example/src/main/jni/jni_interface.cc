@@ -26,50 +26,50 @@ extern "C" {
 
 JNIEXPORT void JNICALL
 Java_com_projecttango_examples_java_floorplanreconstruction_TangoJNINative_onCreate(
-    JNIEnv* env, jobject, jobject activity) {
-  app.OnCreate(env, activity);
+        JNIEnv* env, jobject, jobject activity) {
+    app.OnCreate(env, activity);
 }
 
 JNIEXPORT void JNICALL
 Java_com_projecttango_examples_java_floorplanreconstruction_TangoJNINative_onPause(
-    JNIEnv*, jobject) {
-  app.OnPause();
+        JNIEnv*, jobject) {
+    app.OnPause();
 }
 
 JNIEXPORT void JNICALL
 Java_com_projecttango_examples_java_floorplanreconstruction_TangoJNINative_onTangoServiceConnected(
-    JNIEnv* env, jobject /*obj*/, jobject binder) {
-  app.OnTangoServiceConnected(env, binder);
+        JNIEnv* env, jobject /*obj*/, jobject binder) {
+    app.OnTangoServiceConnected(env, binder);
 }
 
-JNIEXPORT void JNICALL
-Java_com_projecttango_examples_java_floorplanreconstruction_TangoJNINative_onGlSurfaceCreated(
-    JNIEnv* /*env*/, jobject /*obj*/) {
-  app.OnSurfaceCreated();
-}
+//JNIEXPORT void JNICALL
+//Java_com_projecttango_examples_java_floorplanreconstruction_TangoJNINative_onGlSurfaceCreated(
+//    JNIEnv* /*env*/, jobject /*obj*/) {
+//  app.OnSurfaceCreated();
+//}
+//
+//JNIEXPORT void JNICALL
+//Java_com_projecttango_examples_java_floorplanreconstruction_TangoJNINative_onGlSurfaceChanged(
+//    JNIEnv* /*env*/, jobject /*obj*/, jint width, jint height) {
+//  app.OnSurfaceChanged(width, height);
+//}
+//
+//JNIEXPORT void JNICALL
+//Java_com_projecttango_examples_java_floorplanreconstruction_TangoJNINative_onGlSurfaceDrawFrame(
+//    JNIEnv* /*env*/, jobject /*obj*/) {
+//  app.OnDrawFrame();
+//}
 
-JNIEXPORT void JNICALL
-Java_com_projecttango_examples_java_floorplanreconstruction_TangoJNINative_onGlSurfaceChanged(
-    JNIEnv* /*env*/, jobject /*obj*/, jint width, jint height) {
-  app.OnSurfaceChanged(width, height);
-}
-
-JNIEXPORT void JNICALL
-Java_com_projecttango_examples_java_floorplanreconstruction_TangoJNINative_onGlSurfaceDrawFrame(
-    JNIEnv* /*env*/, jobject /*obj*/) {
-  app.OnDrawFrame();
-}
-
-JNIEXPORT void JNICALL
+JNIEXPORT jint JNICALL
 Java_com_projecttango_examples_java_floorplanreconstruction_TangoJNINative_onTouchEvent(
-    JNIEnv* /*env*/, jobject /*obj*/, jfloat x, jfloat y) {
-  app.OnTouchEvent(x, y);
+        JNIEnv* /*env*/, jobject /*obj*/, jfloat x, jfloat y) {
+    return app.OnTouchEvent(x, y);
 }
 
 JNIEXPORT void JNICALL
 Java_com_projecttango_examples_java_floorplanreconstruction_TangoJNINative_onDisplayChanged(
-    JNIEnv* /*env*/, jobject /*obj*/, jint display_rotation) {
-  app.OnDisplayChanged(display_rotation);
+        JNIEnv* /*env*/, jobject /*obj*/, jint display_rotation) {
+    app.OnDisplayChanged(display_rotation);
 }
 
 #ifdef __cplusplus

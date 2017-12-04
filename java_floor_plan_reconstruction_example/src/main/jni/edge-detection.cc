@@ -20,24 +20,24 @@
 
 namespace tango_plane_fitting {
 
-void PlaneTransform(const glm::vec4& in_plane, const glm::mat4& out_T_in,
-                    glm::vec4* out_plane) {
-  if (!out_plane) {
-    LOGE("PlaneFitting: Invalid input to plane transform");
-    return;
-  }
+    void PlaneTransform(const glm::vec4& in_plane, const glm::mat4& out_T_in,
+                        glm::vec4* out_plane) {
+      if (!out_plane) {
+        LOGE("PlaneFitting: Invalid input to plane transform");
+        return;
+      }
 
-  const glm::vec4 input_normal(glm::vec3(in_plane), 0.0f);
-  const glm::vec4 input_origin(
-      -static_cast<float>(in_plane[3]) * glm::vec3(input_normal), 1.0f);
+      const glm::vec4 input_normal(glm::vec3(in_plane), 0.0f);
+      const glm::vec4 input_origin(
+              -static_cast<float>(in_plane[3]) * glm::vec3(input_normal), 1.0f);
 
-  const glm::vec4 out_origin = out_T_in * input_origin;
-  const glm::vec4 out_normal =
-      glm::transpose(glm::inverse(out_T_in)) * input_normal;
+      const glm::vec4 out_origin = out_T_in * input_origin;
+      const glm::vec4 out_normal =
+              glm::transpose(glm::inverse(out_T_in)) * input_normal;
 
-  *out_plane =
-      glm::vec4(glm::vec3(out_normal),
-                -glm::dot(glm::vec3(out_origin), glm::vec3(out_normal)));
-}
+      *out_plane =
+              glm::vec4(glm::vec3(out_normal),
+                        -glm::dot(glm::vec3(out_origin), glm::vec3(out_normal)));
+    }
 
 }  // namespace tango_plane_fitting

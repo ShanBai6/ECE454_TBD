@@ -27,6 +27,8 @@
 #include <tango-gl/axis.h>
 #include <tango-gl/util.h>
 #include <tango-gl/video_overlay.h>
+#include <mutex>
+
 
 namespace tango_edge_detection {
 
@@ -37,128 +39,142 @@ namespace tango_edge_detection {
  * service. Primarily, this involves registering for callbacks and passing on
  * the necessary information to stored objects.
  */
-class EdgeDetectionApplication {
- public:
-    EdgeDetectionApplication();
-  ~EdgeDetectionApplication();
+    class EdgeDetectionApplication {
+    public:
+        EdgeDetectionApplication();
+        ~EdgeDetectionApplication();
 
-  // OnCreate() callback is called when this Android application's
-  // OnCreate function is called from UI thread. In the OnCreate
-  // function, we are only checking the Tango Core's version.
-  //
-  // @param env, java environment parameter OnCreate is being called.
-  // @param caller_activity, caller of this function.
-  // @param activity_orientation, orienation param for the activity.
-  // @param sensor_orientation, orientation param for the color camera sensor.
-  void OnCreate(JNIEnv* env, jobject caller_activity);
+        // OnCreate() callback is called when this Android application's
+        // OnCreate function is called from UI thread. In the OnCreate
+        // function, we are only checking the Tango Core's version.
+        //
+        // @param env, java environment parameter OnCreate is being called.
+        // @param caller_activity, caller of this function.
+        // @param activity_orientation, orienation param for the activity.
+        // @param sensor_orientation, orientation param for the color camera sensor.
+        void OnCreate(JNIEnv* env, jobject caller_activity);
 
-  // OnPause() callback is called when this Android application's
-  // OnCreate function is called from UI thread. In our application,
-  // we disconnect Tango Service and free the Tango configuration
-  // file. It is important to disconnect Tango Service and release
-  // the coresponding resources in the OnPause() callback from
-  // Android, otherwise, this application will hold on to the Tango
-  // resources and other application will not be able to connect to
-  // Tango Service.
-  void OnPause();
+        // OnPause() callback is called when this Android application's
+        // OnCreate function is called from UI thread. In our application,
+        // we disconnect Tango Service and free the Tango configuration
+        // file. It is important to disconnect Tango Service and release
+        // the coresponding resources in the OnPause() callback from
+        // Android, otherwise, this application will hold on to the Tango
+        // resources and other application will not be able to connect to
+        // Tango Service.
+        void OnPause();
 
-  // Called when Tango Service is connected successfully.
-  void OnTangoServiceConnected(JNIEnv* env, jobject binder);
+        // Called when Tango Service is connected successfully.
+        void OnTangoServiceConnected(JNIEnv* env, jobject binder);
 
-  // Create OpenGL state and connect to the color camera texture.
-  void OnSurfaceCreated();
+        // Create OpenGL state and connect to the color camera texture.
+        void OnSurfaceCreated();
 
-  // Configure the viewport of the GL view.
-  void OnSurfaceChanged(int width, int height);
+        // Configure the viewport of the GL view.
+        void OnSurfaceChanged(int width, int height);
 
-  // Get current camera position and render.
-  void OnDrawFrame();
+        // Get current camera position and render.
+        void OnDrawFrame();
+        // For image frame
+        void OnFrameAvailable(const TangoImageBuffer* buffer);
 
-  //
-  // Callback for point clouds that come in from the Tango service.
-  //
-  // @param point_cloud The point cloud returned by the service.
-  //
-  void OnPointCloudAvailable(const TangoPointCloud* point_cloud);
+        // Setup image buffer manager.
+        TangoErrorType SetupImageBufferManager();
 
-  //
-  // Callback for touch events to fit a plane and place an object.  The Java
-  // layer should ensure this is only called from the GL thread.
-  //
-  // @param x The requested x coordinate in screen space of the window.
-  // @param y The requested y coordinate in screen space of the window.
-  void OnTouchEvent(float x, float y);
 
-  // Callback for display change event, we use this function to detect display
-  // orientation change.
-  //
-  // @param display_rotation, the rotation index of the display. Same as the
-  // Android display enum value, see here:
-  // https://developer.android.com/reference/android/view/Display.html#getRotation()
-  // Same as the Android sensor rotation enum value, see here:
-  // https://developer.android.com/reference/android/hardware/Camera.CameraInfo.html#orientation
-  void OnDisplayChanged(int display_rotation);
 
- private:
-  // Update the current point data.
-  void UpdateCurrentPointData();
+        //
+        // Callback for point clouds that come in from the Tango service.
+        //
+        // @param point_cloud The point cloud returned by the service.
+        //
+        void OnPointCloudAvailable(const TangoPointCloud* point_cloud);
 
-  // Setup the configuration file for the Tango Service. We'll also see whether
-  // we'd like auto-recover enabled.
-  void TangoSetupConfig();
+        //
+        // Callback for touch events to fit a plane and place an object.  The Java
+        // layer should ensure this is only called from the GL thread.
+        //
+        // @param x The requested x coordinate in screen space of the window.
+        // @param y The requested y coordinate in screen space of the window.
+        int OnTouchEvent(float x, float y);
 
-  // Connect the OnXYZijAvailable and OnTextureAvailable callbacks.
-  void TangoConnectCallbacks();
+        // Callback for display change event, we use this function to detect display
+        // orientation change.
+        //
+        // @param display_rotation, the rotation index of the display. Same as the
+        // Android display enum value, see here:
+        // https://developer.android.com/reference/android/view/Display.html#getRotation()
+        // Same as the Android sensor rotation enum value, see here:
+        // https://developer.android.com/reference/android/hardware/Camera.CameraInfo.html#orientation
+        void OnDisplayChanged(int display_rotation);
 
-  // Connect to Tango Service.
-  // This function will start the Tango Service pipeline, in this case, it will
-  // start Motion Tracking.
-  void TangoConnect();
+    private:
+        // Update the current point data.
+        void UpdateCurrentPointData();
 
-  // Disconnect from the Project Tango service.
-  void TangoDisconnect();
+        // Setup the configuration file for the Tango Service. We'll also see whether
+        // we'd like auto-recover enabled.
+        void TangoSetupConfig();
 
-  // Delete the GL resources.
-  void DeleteResources();
+        // Connect the OnXYZijAvailable and OnTextureAvailable callbacks.
+        void TangoConnectCallbacks();
 
-  // Set view port and projection matrix. This must be called in the GL thread.
-  void SetViewportAndProjectionGLThread();
+        // Connect to Tango Service.
+        // This function will start the Tango Service pipeline, in this case, it will
+        // start Motion Tracking.
+        void TangoConnect();
 
-  TangoConfig tango_config_;
-  TangoCameraIntrinsics color_camera_intrinsics_;
+        // Disconnect from the Project Tango service.
+        void TangoDisconnect();
 
-  // Render objects
-  tango_gl::VideoOverlay* video_overlay_;
-  tango_gl::Cube* cube_;
-  tango_gl::Axis* axis_;
+        // Delete the GL resources.
+        void DeleteResources();
 
-  // Cube's properties.
-  glm::mat4 depth_T_plane_;
-  double plane_timestamp_;
+        // Set view port and projection matrix. This must be called in the GL thread.
+        //void SetViewportAndProjectionGLThread();
 
-  // The dimensions of the render window.
-  float screen_width_;
-  float screen_height_;
+        TangoConfig tango_config_;
+        TangoCameraIntrinsics color_camera_intrinsics_;
 
-  double last_gpu_timestamp_;
+        // Render objects
+        tango_gl::VideoOverlay* video_overlay_;
+        tango_gl::Cube* cube_;
+        tango_gl::Axis* axis_;
 
-  // Cached transforms
-  // OpenGL projection matrix.
-  glm::mat4 projection_matrix_ar_;
+        // Cube's properties.
+        glm::mat4 depth_T_plane_;
+        double plane_timestamp_;
 
-  std::atomic<bool> is_service_connected_;
-  std::atomic<bool> is_gl_initialized_;
-  std::atomic<bool> is_scene_camera_configured_;
-  std::atomic<bool> is_cube_placed_;
+        // The dimensions of the render window.
+        float screen_width_;
+        float screen_height_;
 
-  // Point data manager.
-  TangoSupport_PointCloudManager* point_cloud_manager_;
+        double last_gpu_timestamp_;
 
-  // Both of these orientation is used for handling display rotation in portrait
-  // or landscape.
-  TangoSupport_Rotation display_rotation_;
-};
+        // Cached transforms
+        // OpenGL projection matrix.
+        glm::mat4 projection_matrix_ar_;
 
-}  // namespace tango_plane_fitting
+        std::atomic<bool> is_service_connected_;
+        std::atomic<bool> is_gl_initialized_;
+        std::atomic<bool> is_scene_camera_configured_;
+        std::atomic<bool> is_cube_placed_;
+
+        // Point data manager.
+        TangoSupport_PointCloudManager* point_cloud_manager_;
+
+        // Both of these orientation is used for handling display rotation in portrait
+        // or landscape.
+        TangoSupport_Rotation display_rotation_;
+
+        // A manger to keep track of the camera image.
+        TangoSupport_ImageBufferManager* image_buffer_manager_;
+
+        // Mutex to prevent re-entry of marker detection thread.
+        std::mutex marker_detection_thread_mutex_;
+
+    };
+
+}  // namespace tango_edge-detection
 
 #endif  // CPP_PLANE_FITTING_EXAMPLE_TANGO_PLANE_FITTING_PLANE_FITTING_APPLICATION_H_

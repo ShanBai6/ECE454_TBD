@@ -1,4 +1,4 @@
-include ':hello_area_description', ':UI', ':java_examples_utils', ':java_floor_plan_reconstruction_example', ':ocr_reader', ':cloudVision', ':java_point_cloud_example', ':voice'
+include ':hello_area_description', ':UI', ':java_examples_utils', ':java_floor_plan_reconstruction_example', ':ocr_reader', ':cloudVision', ':java_point_cloud_example', ':util'
 include ':hello_depth_perception'
 include ':hello_motion_tracking'
 include ':hello_video'

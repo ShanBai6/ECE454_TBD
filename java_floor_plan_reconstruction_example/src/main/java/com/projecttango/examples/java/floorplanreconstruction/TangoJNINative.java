@@ -30,10 +30,10 @@ public class TangoJNINative {
     // This project depends on tango_client_api, so we need to make sure we load
     // the correct library first.
     if (TangoInitializationHelper.loadTangoSharedLibrary() ==
-        TangoInitializationHelper.ARCH_ERROR) {
+            TangoInitializationHelper.ARCH_ERROR) {
       Log.e("TangoJNINative", "ERROR! Unable to load libtango_client_api.so!");
     }
-    System.loadLibrary("cpp_plane_fitting_example");
+    System.loadLibrary("cpp_edge_detection");
   }
 
   /**
@@ -58,20 +58,20 @@ public class TangoJNINative {
   /**
    * Allocate OpenGL resources for rendering.
    */
-  public static native void onGlSurfaceCreated();
-
-  // Setup the view port width and height.
-  public static native void onGlSurfaceChanged(int width, int height);
-
-  // Main render loop.
-  public static native void onGlSurfaceDrawFrame();
+//  public static native void onGlSurfaceCreated();
+//
+//  // Setup the view port width and height.
+//  public static native void onGlSurfaceChanged(int width, int height);
+//
+//  // Main render loop.
+//  public static native void onGlSurfaceDrawFrame();
 
   // Respond to a touch event.
-  public static native void onTouchEvent(float x, float y);
+  public static native int onTouchEvent(float x, float y);
 
   // Respond to a display change.
   public static native void onDisplayChanged(int displayRotation);
 
   // Detect number of edges near the bottom of the plane
-  public static native int numEdgesBottom();
+  //public static native int numEdgesBottom();
 }
