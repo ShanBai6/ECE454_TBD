@@ -142,15 +142,9 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
     private int numOfTurn = 0;
 
     //Voice  Dou
-    private final int CHECK_CODE = 0x1;
-    private final int LONG_DURATION = 500;
-    private final int SHORT_DURATION = 120;
-    private static final int SPEECH_REQUEST_CODE = 200;
-    private Speaker speaker;
-    private SpeechRecognizer speechRecognizer;
-    private ArrayList<String> speechResult;
-    private Button speechBtn;
-    private TextView test;
+
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -177,9 +171,7 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
         down = (ImageView) findViewById(R.id.imageView5);
         stop = (ImageView) findViewById(R.id.imageView4);
 
-        speechBtn=(Button)findViewById(R.id.speechBtn);
-        test=(TextView)findViewById(R.id.TEST);
-        checkTTS();
+
 
 
         //DisplayManager displayManager = (DisplayManager) getSystemService(DISPLAY_SERVICE);
@@ -236,51 +228,10 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
             }
         }
     }
-    public void onSpeechButtonClicked(View v){
-        //check if permission is granted
-       /* if(ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
-            ==PackageManager.PERMISSION_DENIED){
-            ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.RECORD_AUDIO},SPEECH_REQUEST_CODE);
-        }else{
-            Intent intent = new Intent(RecognizerIntent.ACTION_VOICE_SEARCH_HANDS_FREE);
-            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-            speechRecognizer.startListening(intent);
-        }*/
-        Intent intent = new Intent(RecognizerIntent.ACTION_VOICE_SEARCH_HANDS_FREE);
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-        startActivityForResult(intent,SPEECH_REQUEST_CODE);
-    }
-    protected void onActivityResult(int requestCode, int resultCode,
-                                    Intent data) {
-        if (requestCode == SPEECH_REQUEST_CODE && resultCode == RESULT_OK) {
-            List<String> results = data.getStringArrayListExtra(
-                    RecognizerIntent.EXTRA_RESULTS);
-            String spokenText = results.get(0);
-            test.setText(spokenText);
-
-        }
-
-        // Text to speech
-        if(requestCode == CHECK_CODE){
-            if(resultCode == TextToSpeech.Engine.CHECK_VOICE_DATA_PASS){
-                speaker = new Speaker(this);
-            }else {
-                Intent install = new Intent();
-                install.setAction(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
-                startActivity(install);
-            }
-        }
-    }
 
 
 
 
-    //
-    private void checkTTS(){
-        Intent check = new Intent();
-        check.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
-        startActivityForResult(check, CHECK_CODE);
-    }
     /**
      * Initialize Tango Service as a normal Android Service.
      */
