@@ -45,7 +45,6 @@ import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Display;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -58,8 +57,10 @@ import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import static java.lang.Math.abs;
+import static java.lang.Math.max;
 import static java.lang.Math.round;
 import static java.lang.Math.tan;
 import static java.lang.Thread.sleep;
@@ -130,10 +131,12 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
     private double maxDistance;
     private double maxRadians;
 
+    //Number of turns
+    private int numOfTurn = 0;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        TangoJNINative.onCreate(this);
         //setContentView(R.layout.activity_main);
         setContentView(R.layout.activity_navigation);
         TypedValue typedValue = new TypedValue();
@@ -159,25 +162,25 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
 
         //DisplayManager displayManager = (DisplayManager) getSystemService(DISPLAY_SERVICE);
         //if (displayManager != null) {
-        // displayManager.registerDisplayListener(new DisplayManager.DisplayListener() {
-        //   @Override
-        //  public void onDisplayAdded(int displayId) {
-        // }
+           // displayManager.registerDisplayListener(new DisplayManager.DisplayListener() {
+             //   @Override
+              //  public void onDisplayAdded(int displayId) {
+               // }
 
-        //@Override
-        //public void onDisplayChanged(int displayId) {
-        //  synchronized (this) {
-        //    setDisplayRotation();
-        //}
-        //}
+                //@Override
+                //public void onDisplayChanged(int displayId) {
+                  //  synchronized (this) {
+                    //    setDisplayRotation();
+                    //}
+                //}
 
-        //@Override
-        //public void onDisplayRemoved(int displayId) {
-        //}
-        //}, null);
+                //@Override
+                //public void onDisplayRemoved(int displayId) {
+                //}
+            //}, null);
         //}
     }
-    //
+
     @Override
     protected void onStart() {
         super.onStart();
@@ -484,7 +487,7 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
                         } else if (averageDepth <= 0.65) {
                             //VOICE: stop now and scan left and right
                             ShowPic("STOP");
-
+                            numOfTurn ++;
                             //record max distance and radians pairs on left and right
                             getHeading();
                             try {
@@ -504,6 +507,13 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
                             }
                             //
                         } else {
+                            //if u have faced the stairs
+                            if(numOfTurn >= 2){
+                                if(determineStairS(pointBuffer, numPoints)){
+                                   //voice go 2 steps
+                                    numOfTurn = 0;
+                                }
+                            }
                             if (abs(currFloor - DESTINATION) < 0.1) {
                                 ShowPic("STOP");
                                 try {
@@ -697,6 +707,55 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
         return averageZ;
     }
 
+    private boolean determineStairS(FloatBuffer pointCloundBuffer, int numPoints){
+        int counter = 0;
+        for(int i = 0;i < 100;i++){
+            if(determineStairMS(pointCloundBuffer, numPoints)){
+                counter++;
+            }
+        }
+        //set threshold
+        if(counter >= 50){
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Check stair existence by point cloud
+     *
+     * @param pointCloudBuffer
+     * @return If there is a stairs in front.
+     */
+    private boolean determineStairMS(FloatBuffer pointCloudBuffer, int numPoints){
+
+        ArrayList<Float> yData = new ArrayList<>();
+        //extract y
+        for(int i = 2;i < 4*numPoints;i++){
+            if(i % 4 == 1) {
+                yData.add(pointCloudBuffer.get(i));
+            }
+        }
+        //pick 3 points for each ms
+        Random random = new Random();
+        int x = random.nextInt(yData.size());
+        int y = random.nextInt(yData.size());
+        int z = random.nextInt(yData.size());
+
+        float one = yData.get(x);
+        float two = yData.get(y);
+        float three = yData.get(z);
+
+        float epsilon = 0.1f * max(abs(x-y), abs(y-z));
+        //compare if any two pair has same difference
+        if(abs(x-y) - abs(y-z) < epsilon
+                || abs(x-y) - abs(x-z) < epsilon
+                || abs(y-z) - abs(x-z) < epsilon){
+            return true;
+        }
+        return false;
+    }
+
     private String determineHeading() {
         //get current pose
         TangoPoseData devicePose = TangoSupport.getPoseAtTime(0.0,
@@ -771,21 +830,6 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
         }).start();
     }
 
-    @Override
-    public boolean onTouchEvent(final MotionEvent event) {
-        if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            // Ensure that handling of the touch event is run on the GL thread
-            // rather than Android UI thread. This ensures we can modify
-            // rendering state without locking.  This event triggers a plane
-            // fit.
-            Log.v("!!!!!!!x!!!!!!!!!!!!!", ""+event.getX());
-            Log.v("!!!!!!!!!!y!!!!!!!!!!", ""+event.getY());
-            int r = TangoJNINative.onTouchEvent(event.getX(), event.getY());
-            Log.v("jint", ""+r);
 
-        }
-
-        return super.onTouchEvent(event);
-    }
 }
 
