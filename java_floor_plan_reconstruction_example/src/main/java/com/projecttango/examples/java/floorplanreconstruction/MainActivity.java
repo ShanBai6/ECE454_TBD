@@ -23,13 +23,13 @@ public class MainActivity extends Activity {
     private final int SHORT_DURATION = 120;
     private static final int SPEECH_REQUEST_CODE = 200;
     private Speaker speaker;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         speechBtn=(Button)findViewById(R.id.speechBtn);
         checkTTS();
-
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -64,7 +64,7 @@ public class MainActivity extends Activity {
             intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
             speechRecognizer.startListening(intent);
         }*/
-        Intent intent = new Intent(RecognizerIntent.ACTION_VOICE_SEARCH_HANDS_FREE);
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
         startActivityForResult(intent,SPEECH_REQUEST_CODE);
     }
@@ -73,6 +73,52 @@ public class MainActivity extends Activity {
         if (requestCode == SPEECH_REQUEST_CODE && resultCode == RESULT_OK) {
             List<String> results = data.getStringArrayListExtra(
                     RecognizerIntent.EXTRA_RESULTS);
+
+            String[]  text= results.get(0).toLowerCase().split("\\s+");
+            for(int i=0; i<text.length;i++){
+                if(numOfClick==2)
+                    return;
+                switch(text[i]){
+                    case "first": {
+                        if(numOfClick==0)
+                            startingPoint = "1";
+                        else
+                            destination="1";
+                        numOfClick++;
+                        break;
+                    }
+                    case "second":
+                    {
+                        if(numOfClick==0)
+                            startingPoint = "2";
+                        else
+                            destination="2";
+                        numOfClick++;
+                        break;
+                    }
+
+                    case "third":
+                    {
+                        if(numOfClick==0)
+                            startingPoint = "3";
+                        else
+                            destination="3";
+                        numOfClick++;
+                        break;
+                    }
+                    case "fourth":
+                    {
+                        if(numOfClick==0)
+                            startingPoint = "4";
+                        else
+                            destination="4";
+                        numOfClick++;
+                        break;
+                    }
+                    default:
+                        break;
+                }
+            }
 
         }
 
