@@ -38,9 +38,7 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.hardware.display.DisplayManager;
 import android.os.Bundle;
-import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
@@ -56,20 +54,15 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.w3c.dom.Text;
-
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 
-import static android.speech.SpeechRecognizer.RESULTS_RECOGNITION;
 import static android.speech.SpeechRecognizer.createSpeechRecognizer;
 import static java.lang.Math.abs;
 import static java.lang.Math.max;
 import static java.lang.Math.round;
-import static java.lang.Math.tan;
 import static java.lang.Thread.sleep;
 
 /**
@@ -178,7 +171,7 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
         stop = (ImageView) findViewById(R.id.imageView4);
 
         speechBtn=(Button)findViewById(R.id.speechBtn);
-        test=(TextView)findViewById(R.id.TEST);
+        //test=(TextView)findViewById(R.id.TEST);
         checkTTS();
 
 
@@ -272,10 +265,6 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
         }
     }
 
-
-
-
-    //
     private void checkTTS(){
         Intent check = new Intent();
         check.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
@@ -547,13 +536,14 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
                         if (averageDepth < 0.95 && averageDepth > 0.65) {
                             //VOICE: go forward, you have reached the platform
                             ShowPic("UP");
+                            speaker.speak("You have reached the platform");
                             //clear the parameter
                             maxRadians = 0;
                             maxDistance = 0;
                         } else if (averageDepth <= 0.65) {
                             //VOICE: stop now and scan left and right
                             ShowPic("STOP");
-                            numOfTurn ++;
+                            speaker.speak("Stop and Scan");
                             //record max distance and radians pairs on left and right
                             getHeading();
                             try {
@@ -564,32 +554,38 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
                             String turn = determineHeading();
                             if(turn.equals("left")){
                                 ShowPic("LEFT");
+                                speaker.speak("Left");
                             }
                             else if(turn.equals("right")){
                                 ShowPic("RIGHT");
+                                speaker.speak("Right");
                             }
                             else{
                                 ShowPic("STOP");
+                                speaker.speak("Stop");
                             }
-                            //
+                            numOfTurn ++;
                         } else {
                             //if u have faced the stairs
                             if(numOfTurn >= 2){
-                                if(determineStairS(pointBuffer, numPoints)){
                                    //voice go 2 steps
+                                    speaker.speak("Stairs found, you are 2 steps from the stairs");
                                     numOfTurn = 0;
-                                }
+
                             }
                             if (abs(currFloor - DESTINATION) < 0.1) {
                                 ShowPic("STOP");
+                                speaker.speak("You have arrived");
                                 try {
                                     this.wait();
                                 } catch (InterruptedException e) {
                                 }
                             } else if (currFloor < DESTINATION) {
                                 ShowPic("UP");
+                                speaker.speak("Go up");
                             } else {
                                 ShowPic("DOWN");
+                                speaker.speak("Go down");
                             }
                         }
 
@@ -774,15 +770,10 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
     }
 
     private boolean determineStairS(FloatBuffer pointCloundBuffer, int numPoints){
-        int counter = 0;
         for(int i = 0;i < 100;i++){
             if(determineStairMS(pointCloundBuffer, numPoints)){
-                counter++;
+                return true;
             }
-        }
-        //set threshold
-        if(counter >= 50){
-            return true;
         }
         return false;
     }
@@ -814,9 +805,9 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
 
         float epsilon = 0.1f * max(abs(x-y), abs(y-z));
         //compare if any two pair has same difference
-        if(abs(x-y) - abs(y-z) < epsilon
-                || abs(x-y) - abs(x-z) < epsilon
-                || abs(y-z) - abs(x-z) < epsilon){
+        if(abs(one-two) - abs(two-three) < epsilon
+                || abs(one-two) - abs(one-three) < epsilon
+                || abs(two-three) - abs(one-three) < epsilon){
             return true;
         }
         return false;
