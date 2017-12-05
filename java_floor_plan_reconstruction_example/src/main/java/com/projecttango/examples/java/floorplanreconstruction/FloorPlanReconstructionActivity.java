@@ -35,11 +35,14 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.ComponentName;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.hardware.display.DisplayManager;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
@@ -145,7 +148,6 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
     //Voice  Dou
 
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -174,29 +176,28 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
         stop = (ImageView) findViewById(R.id.imageView4);
 
 
-
-
         //DisplayManager displayManager = (DisplayManager) getSystemService(DISPLAY_SERVICE);
         //if (displayManager != null) {
-           // displayManager.registerDisplayListener(new DisplayManager.DisplayListener() {
-             //   @Override
-              //  public void onDisplayAdded(int displayId) {
-               // }
+        // displayManager.registerDisplayListener(new DisplayManager.DisplayListener() {
+        //   @Override
+        //  public void onDisplayAdded(int displayId) {
+        // }
 
-                //@Override
-                //public void onDisplayChanged(int displayId) {
-                  //  synchronized (this) {
-                    //    setDisplayRotation();
-                    //}
-                //}
+        //@Override
+        //public void onDisplayChanged(int displayId) {
+        //  synchronized (this) {
+        //    setDisplayRotation();
+        //}
+        //}
 
-                //@Override
-                //public void onDisplayRemoved(int displayId) {
-                //}
-            //}, null);
+        //@Override
+        //public void onDisplayRemoved(int displayId) {
+        //}
+        //}, null);
         //}
     }
-//
+
+    //
     @Override
     protected void onStart() {
         super.onStart();
@@ -230,8 +231,6 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
             }
         }
     }
-
-
 
 
     /**
@@ -506,7 +505,7 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
                         } else if (averageDepth <= 0.65) {
                             //VOICE: stop now and scan left and right
                             ShowPic("STOP");
-                            numOfTurn ++;
+                            numOfTurn++;
                             //record max distance and radians pairs on left and right
                             getHeading();
                             try {
@@ -515,21 +514,19 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
                             }
                             //determine the turn
                             String turn = determineHeading();
-                            if(turn.equals("left")){
+                            if (turn.equals("left")) {
                                 ShowPic("LEFT");
-                            }
-                            else if(turn.equals("right")){
+                            } else if (turn.equals("right")) {
                                 ShowPic("RIGHT");
-                            }
-                            else{
+                            } else {
                                 ShowPic("STOP");
                             }
                             //
                         } else {
                             //if u have faced the stairs
-                            if(numOfTurn >= 2){
-                                if(determineStairS(pointBuffer, numPoints)){
-                                   //voice go 2 steps
+                            if (numOfTurn >= 2) {
+                                if (determineStairS(pointBuffer, numPoints)) {
+                                    //voice go 2 steps
                                     numOfTurn = 0;
                                 }
                             }
@@ -726,15 +723,15 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
         return averageZ;
     }
 
-    private boolean determineStairS(FloatBuffer pointCloundBuffer, int numPoints){
+    private boolean determineStairS(FloatBuffer pointCloundBuffer, int numPoints) {
         int counter = 0;
-        for(int i = 0;i < 100;i++){
-            if(determineStairMS(pointCloundBuffer, numPoints)){
+        for (int i = 0; i < 100; i++) {
+            if (determineStairMS(pointCloundBuffer, numPoints)) {
                 counter++;
             }
         }
         //set threshold
-        if(counter >= 50){
+        if (counter >= 50) {
             return true;
         }
         return false;
@@ -746,12 +743,12 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
      * @param pointCloudBuffer
      * @return If there is a stairs in front.
      */
-    private boolean determineStairMS(FloatBuffer pointCloudBuffer, int numPoints){
+    private boolean determineStairMS(FloatBuffer pointCloudBuffer, int numPoints) {
 
         ArrayList<Float> yData = new ArrayList<>();
         //extract y
-        for(int i = 2;i < 4*numPoints;i++){
-            if(i % 4 == 1) {
+        for (int i = 2; i < 4 * numPoints; i++) {
+            if (i % 4 == 1) {
                 yData.add(pointCloudBuffer.get(i));
             }
         }
@@ -765,11 +762,11 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
         float two = yData.get(y);
         float three = yData.get(z);
 
-        float epsilon = 0.1f * max(abs(x-y), abs(y-z));
+        float epsilon = 0.1f * max(abs(x - y), abs(y - z));
         //compare if any two pair has same difference
-        if(abs(x-y) - abs(y-z) < epsilon
-                || abs(x-y) - abs(x-z) < epsilon
-                || abs(y-z) - abs(x-z) < epsilon){
+        if (abs(x - y) - abs(y - z) < epsilon
+                || abs(x - y) - abs(x - z) < epsilon
+                || abs(y - z) - abs(x - z) < epsilon) {
             return true;
         }
         return false;
@@ -841,7 +838,7 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
                         deviceOrientation[3]);
 
                 averageDepth = getAveragedDepth(pointBuffer, numPoints);
-                if(averageDepth > maxDistance){
+                if (averageDepth > maxDistance) {
                     maxDistance = averageDepth;
                     maxRadians = yawRadians1;
                 }
@@ -856,13 +853,27 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
             // rather than Android UI thread. This ensures we can modify
             // rendering state without locking.  This event triggers a plane
             // fit.
-            Log.v("!!!!!!!!!!!!!!y!!!!!!", ""+event.getY());
-            Log.v("!!!!!!!!!!!!!!x!!!!!!", ""+event.getX());
+            Log.v("!!!!!!!!!!!!!!y!!!!!!", "" + event.getY());
+            Log.v("!!!!!!!!!!!!!!x!!!!!!", "" + event.getX());
             int r = TangoJNINative.onTouchEvent(event.getX(), event.getY());
-            Log.v("jint", ""+r);
+            Log.v("jint", "" + r);
         }
         return super.onTouchEvent(event);
     }
-}
 
+    // Tango Service connection.
+    ServiceConnection mTangoServiceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            // The following code block does setup and connection to Tango.
+            TangoJNINative.onTangoServiceConnected(service);
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            // Handle this if you need to gracefully shutdown/retry
+            // in the event that Tango itself crashes/gets upgraded while running.
+        }
+    };
+}
 

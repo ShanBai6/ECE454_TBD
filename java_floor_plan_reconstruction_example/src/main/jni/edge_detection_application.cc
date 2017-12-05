@@ -101,6 +101,8 @@ namespace tango_edge_detection {
                         "date.");
         std::exit(EXIT_SUCCESS);
       }
+      is_service_connected_ = false;
+      is_gl_initialized_ = false;
     }
 
     void EdgeDetectionApplication::OnTangoServiceConnected(JNIEnv* env,

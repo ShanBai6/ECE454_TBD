@@ -1,14 +1,14 @@
-Executable : C:\Android\sdk\ndk-bundle\ndk-build.cmd
+Executable : /Users/Tony/Library/Android/sdk/ndk-bundle/ndk-build
 arguments : 
 NDK_PROJECT_PATH=null
-APP_BUILD_SCRIPT=C:\ECE454_TBD\java_floor_plan_reconstruction_example\src\main\jni\Android.mk
-NDK_APPLICATION_MK=C:\ECE454_TBD\java_floor_plan_reconstruction_example\src\main\jni\Application.mk
+APP_BUILD_SCRIPT=/Users/Tony/Downloads/ECE454_TBD/java_floor_plan_reconstruction_example/src/main/jni/Android.mk
+NDK_APPLICATION_MK=/Users/Tony/Downloads/ECE454_TBD/java_floor_plan_reconstruction_example/src/main/jni/Application.mk
 APP_ABI=armeabi-v7a
 NDK_ALL_ABIS=armeabi-v7a
 NDK_DEBUG=0
 APP_PLATFORM=android-19
-NDK_OUT=C:/ECE454_TBD/java_floor_plan_reconstruction_example/build/intermediates/ndkBuild/lintOptions/obj
-NDK_LIBS_OUT=C:\ECE454_TBD\java_floor_plan_reconstruction_example\build\intermediates\ndkBuild\lintOptions\lib
+NDK_OUT=/Users/Tony/Downloads/ECE454_TBD/java_floor_plan_reconstruction_example/build/intermediates/ndkBuild/lintOptions/obj
+NDK_LIBS_OUT=/Users/Tony/Downloads/ECE454_TBD/java_floor_plan_reconstruction_example/build/intermediates/ndkBuild/lintOptions/lib
 APP_SHORT_COMMANDS=false
 LOCAL_SHORT_COMMANDS=false
 -B
