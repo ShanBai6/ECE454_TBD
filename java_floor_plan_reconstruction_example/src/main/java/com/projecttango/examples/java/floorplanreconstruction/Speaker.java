@@ -32,10 +32,9 @@ public class Speaker implements TextToSpeech.OnInitListener {
     }
 
     public void speak(String text){
-        if(text.equals(prevText)){
-            tts.stop();
+        if(!text.equals(prevText)){
+            tts.speak(text, TextToSpeech.QUEUE_ADD, null);
         }
-        tts.speak(text, TextToSpeech.QUEUE_ADD, null);
         prevText = text;
     }
 

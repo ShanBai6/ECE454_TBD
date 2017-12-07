@@ -34,7 +34,9 @@ import com.google.tango.support.TangoSupport;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlarmManager;
 import android.app.AlertDialog;
+import android.app.PendingIntent;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -144,6 +146,11 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
     private ArrayList<String> speechResult;
     private Button speechBtn;
     private TextView test;
+    boolean StopFlag = true;
+
+    private boolean turnReady = false;
+    private String turn;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -170,32 +177,33 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
         down = (ImageView) findViewById(R.id.imageView5);
         stop = (ImageView) findViewById(R.id.imageView4);
 
-        speechBtn=(Button)findViewById(R.id.speechBtn);
+        speechBtn = (Button) findViewById(R.id.speechBtn);
         //test=(TextView)findViewById(R.id.TEST);
         checkTTS();
 
 
         //DisplayManager displayManager = (DisplayManager) getSystemService(DISPLAY_SERVICE);
         //if (displayManager != null) {
-           // displayManager.registerDisplayListener(new DisplayManager.DisplayListener() {
-             //   @Override
-              //  public void onDisplayAdded(int displayId) {
-               // }
+        // displayManager.registerDisplayListener(new DisplayManager.DisplayListener() {
+        //   @Override
+        //  public void onDisplayAdded(int displayId) {
+        // }
 
-                //@Override
-                //public void onDisplayChanged(int displayId) {
-                  //  synchronized (this) {
-                    //    setDisplayRotation();
-                    //}
-                //}
+        //@Override
+        //public void onDisplayChanged(int displayId) {
+        //  synchronized (this) {
+        //    setDisplayRotation();
+        //}
+        //}
 
-                //@Override
-                //public void onDisplayRemoved(int displayId) {
-                //}
-            //}, null);
+        //@Override
+        //public void onDisplayRemoved(int displayId) {
+        //}
+        //}, null);
         //}
     }
-//
+
+    //
     @Override
     protected void onStart() {
         super.onStart();
@@ -229,7 +237,8 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
             }
         }
     }
-    public void onSpeechButtonClicked(View v){
+
+    public void onSpeechButtonClicked(View v) {
         //check if permission is granted
        /* if(ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
             ==PackageManager.PERMISSION_DENIED){
@@ -241,8 +250,9 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
         }*/
         Intent intent = new Intent(RecognizerIntent.ACTION_VOICE_SEARCH_HANDS_FREE);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-        startActivityForResult(intent,SPEECH_REQUEST_CODE);
+        startActivityForResult(intent, SPEECH_REQUEST_CODE);
     }
+
     protected void onActivityResult(int requestCode, int resultCode,
                                     Intent data) {
         if (requestCode == SPEECH_REQUEST_CODE && resultCode == RESULT_OK) {
@@ -254,10 +264,10 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
         }
 
         // Text to speech
-        if(requestCode == CHECK_CODE){
-            if(resultCode == TextToSpeech.Engine.CHECK_VOICE_DATA_PASS){
+        if (requestCode == CHECK_CODE) {
+            if (resultCode == TextToSpeech.Engine.CHECK_VOICE_DATA_PASS) {
                 speaker = new Speaker(this);
-            }else {
+            } else {
                 Intent install = new Intent();
                 install.setAction(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
                 startActivity(install);
@@ -265,11 +275,12 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
         }
     }
 
-    private void checkTTS(){
+    private void checkTTS() {
         Intent check = new Intent();
         check.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
         startActivityForResult(check, CHECK_CODE);
     }
+
     /**
      * Initialize Tango Service as a normal Android Service.
      */
@@ -532,54 +543,61 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
                         else {
                             currFloor = START;
                         }
-
-                        if (averageDepth < 0.95 && averageDepth > 0.65) {
+                        if (turnReady) {
+                            turnReady = false;
+                            if (turn.equals("left")) {
+                                speaker.speak("Turn Left");
+                                ShowPic("LEFT");
+                                numOfTurn++;
+                            } else if (turn.equals("right")) {
+                                speaker.speak("Turn Right");
+                                ShowPic("RIGHT");
+                                numOfTurn++;
+                            }
+                            try {
+                                sleep(3000);
+                            } catch (InterruptedException e) {
+                            }
+                        } else if (averageDepth < 0.95 && averageDepth > 0.70) {
                             //VOICE: go forward, you have reached the platform
                             ShowPic("UP");
                             speaker.speak("You have reached the platform");
                             //clear the parameter
                             maxRadians = 0;
                             maxDistance = 0;
-                        } else if (averageDepth <= 0.65) {
+                        } else if (averageDepth <= 0.70) {
                             //VOICE: stop now and scan left and right
+
                             ShowPic("STOP");
                             speaker.speak("Stop and Scan");
                             //record max distance and radians pairs on left and right
                             getHeading();
                             try {
-                                sleep(500);
+                                sleep(3000);
                             } catch (InterruptedException e) {
                             }
                             //determine the turn
-                            String turn = determineHeading();
-                            if(turn.equals("left")){
-                                ShowPic("LEFT");
-                                speaker.speak("Left");
+                            turn = determineHeading();
+                            if (!turn.equals("others")) {
+                                turnReady = true;
                             }
-                            else if(turn.equals("right")){
-                                ShowPic("RIGHT");
-                                speaker.speak("Right");
-                            }
-                            else{
-                                ShowPic("STOP");
-                                speaker.speak("Stop");
-                            }
-                            numOfTurn ++;
                         } else {
                             //if u have faced the stairs
-                            if(numOfTurn >= 2){
-                                   //voice go 2 steps
-                                    speaker.speak("Stairs found, you are 2 steps from the stairs");
-                                    numOfTurn = 0;
+                            if (numOfTurn >= 2) {
+                                //voice go 2 steps
+                                speaker.speak("Stairs found, you are 2 steps from the stairs");
+                                numOfTurn = 0;
 
                             }
                             if (abs(currFloor - DESTINATION) < 0.1) {
                                 ShowPic("STOP");
                                 speaker.speak("You have arrived");
-                                try {
-                                    this.wait();
-                                } catch (InterruptedException e) {
-                                }
+                                Intent mStartActivity = new Intent(FloorPlanReconstructionActivity.this, MainActivity.class);
+                                int mPendingIntentId = 123456;
+                                PendingIntent mPendingIntent = PendingIntent.getActivity(FloorPlanReconstructionActivity.this, mPendingIntentId,    mStartActivity, PendingIntent.FLAG_CANCEL_CURRENT);
+                                AlarmManager mgr = (AlarmManager)FloorPlanReconstructionActivity.this.getSystemService(FloorPlanReconstructionActivity.this.ALARM_SERVICE);
+                                mgr.set(AlarmManager.RTC, System.currentTimeMillis() + 100, mPendingIntent);
+                                System.exit(0);
                             } else if (currFloor < DESTINATION) {
                                 ShowPic("UP");
                                 speaker.speak("Go up");
@@ -769,9 +787,9 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
         return averageZ;
     }
 
-    private boolean determineStairS(FloatBuffer pointCloundBuffer, int numPoints){
-        for(int i = 0;i < 100;i++){
-            if(determineStairMS(pointCloundBuffer, numPoints)){
+    private boolean determineStairS(FloatBuffer pointCloundBuffer, int numPoints) {
+        for (int i = 0; i < 100; i++) {
+            if (determineStairMS(pointCloundBuffer, numPoints)) {
                 return true;
             }
         }
@@ -784,12 +802,12 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
      * @param pointCloudBuffer
      * @return If there is a stairs in front.
      */
-    private boolean determineStairMS(FloatBuffer pointCloudBuffer, int numPoints){
+    private boolean determineStairMS(FloatBuffer pointCloudBuffer, int numPoints) {
 
         ArrayList<Float> yData = new ArrayList<>();
         //extract y
-        for(int i = 2;i < 4*numPoints;i++){
-            if(i % 4 == 1) {
+        for (int i = 2; i < 4 * numPoints; i++) {
+            if (i % 4 == 1) {
                 yData.add(pointCloudBuffer.get(i));
             }
         }
@@ -803,11 +821,11 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
         float two = yData.get(y);
         float three = yData.get(z);
 
-        float epsilon = 0.1f * max(abs(x-y), abs(y-z));
+        float epsilon = 0.1f * max(abs(x - y), abs(y - z));
         //compare if any two pair has same difference
-        if(abs(one-two) - abs(two-three) < epsilon
-                || abs(one-two) - abs(one-three) < epsilon
-                || abs(two-three) - abs(one-three) < epsilon){
+        if (abs(one - two) - abs(two - three) < epsilon
+                || abs(one - two) - abs(one - three) < epsilon
+                || abs(two - three) - abs(one - three) < epsilon) {
             return true;
         }
         return false;
@@ -879,7 +897,7 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
                         deviceOrientation[3]);
 
                 averageDepth = getAveragedDepth(pointBuffer, numPoints);
-                if(averageDepth > maxDistance){
+                if (averageDepth > maxDistance) {
                     maxDistance = averageDepth;
                     maxRadians = yawRadians1;
                 }
