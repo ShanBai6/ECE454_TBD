@@ -35,7 +35,7 @@ public class MainActivity extends Activity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                while (numOfClick < 2 && confirmed) {
+                while (numOfClick < 2 && !confirmed) {
                     try {
                         sleep(1);
                     } catch (InterruptedException e) {
@@ -133,7 +133,7 @@ public class MainActivity extends Activity {
                     }
                 }
                 //confirm
-                speaker.speak("From "+startingPoint+ " to "+destination +" confirmed?");
+                speaker.speak("From "+startingPoint+ " to "+destination +", is that what you want?");
                 askForConfirm=true;
                 Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
                 intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
@@ -156,7 +156,6 @@ public class MainActivity extends Activity {
         if(requestCode == CHECK_CODE){
             if(resultCode == TextToSpeech.Engine.CHECK_VOICE_DATA_PASS){
                 speaker = new Speaker(this);
-                speaker.allow(true);
                 speaker.speak("My lord, which floor do you want to go to?");
                 Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
                 intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
