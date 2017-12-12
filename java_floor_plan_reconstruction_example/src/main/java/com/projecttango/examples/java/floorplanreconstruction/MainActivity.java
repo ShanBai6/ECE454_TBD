@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
 import android.speech.tts.TextToSpeech;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
@@ -41,9 +42,10 @@ public class MainActivity extends Activity {
                     } catch (InterruptedException e) {
                     }
                 }
-
                 Intent intent = new Intent(MainActivity.this,
                         FloorPlanReconstructionActivity.class);
+                intent.putExtra("start",startingPoint);
+                intent.putExtra("destination", destination);
                 startActivity(intent);
 
             }

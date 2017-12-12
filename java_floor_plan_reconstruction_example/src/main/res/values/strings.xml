@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">Java Floor Plan Reconstruction</string>
+    <string name="app_name">TBD Stairs</string>
     <string name="app_name_long">Java Floor Plan Reconstruction Example</string>
     <string name="exception_tango_error">"Tango exception! Try again!"</string>
     <string name="exception_tango_invalid">"Tango invalid exception! Try again!"</string>
@@ -16,4 +16,5 @@
     <string name="title_activity_navigation">Navigation Activity</string>
     <string name="instruction_main">Choose your initial location and destination</string>
     <string name="instruction_navigation">Follow the instructions!</string>
+    <string name="init">Tango Initiating!</string>
 </resources>

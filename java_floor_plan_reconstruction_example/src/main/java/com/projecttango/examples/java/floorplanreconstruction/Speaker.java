@@ -6,6 +6,7 @@ package com.projecttango.examples.java.floorplanreconstruction;
 
 import android.content.Context;
 import android.media.AudioManager;
+import android.os.Handler;
 import android.speech.tts.TextToSpeech;
 
 import java.util.HashMap;
@@ -33,7 +34,12 @@ public class Speaker implements TextToSpeech.OnInitListener {
 
     public void speak(String text){
         if(!text.equals(prevText)){
-            tts.speak(text, TextToSpeech.QUEUE_ADD, null);
+            final String text1 = text;
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    tts.speak(text1, TextToSpeech.QUEUE_ADD, null);
+                }},500);
         }
         prevText = text;
     }

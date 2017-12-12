@@ -3,4 +3,5 @@
     <item name="explored_space" type="color">#d2d2d2</item>
     <item name="furniture" type="color">#15A6D9</item>
     <item name="user_marker" type="color">#be6A2875</item>
+    <color name="gray">#444440</color>
 </resources>

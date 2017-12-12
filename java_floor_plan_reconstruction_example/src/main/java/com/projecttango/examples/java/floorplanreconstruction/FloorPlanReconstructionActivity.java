@@ -36,23 +36,35 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.AlertDialog;
+import android.app.Fragment;
+import android.app.FragmentManager;
 import android.app.PendingIntent;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
 import android.support.annotation.UiThread;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Display;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -92,26 +104,27 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
     private TangoConfig mConfig;
     private boolean mIsConnected = false;
     private boolean mIsPaused;
-    private Button mPauseButton;
+    //private Button mPauseButton;
     //private FloorplanView //mFloorplanView;
-    private TextView mAreaText;
-    private TextView mHeightText;
-    private TextView mDistanceText;
-    private TextView mFloorText;
+    //private TextView mAreaText;
+    //private TextView mHeightText;
+//    private TextView mDistanceText;
+    //private TextView mFloorText;
     private int mDisplayRotation = 0;
-    private final int DESTINATION = Integer.parseInt(MainActivity.getDestination());
-    private final int START = Integer.parseInt(MainActivity.getStartingPoint());
+    private int DESTINATION = 0;
+    private int START = 0;
     private float mMinAreaSpace = 0;
 
     private double currFloor = 0;
     private float startDevToFloorDistance;
     private boolean isStarted;
 
-    private ImageView up;
-    private ImageView left;
-    private ImageView right;
-    private ImageView down;
-    private ImageView stop;
+    private ImageView img;
+//    private ImageView up;
+//    private ImageView left;
+//    private ImageView right;
+//    private ImageView down;
+//    private ImageView stop;
 
     private boolean clearClicked = false;
     private boolean isSet = false;
@@ -146,72 +159,94 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
     private ArrayList<String> speechResult;
     private Button speechBtn;
     private TextView test;
-    boolean StopFlag = true;
+    boolean StartFlag = true;
 
     private boolean turnReady = false;
-    private String turn;
+
+
+    // For drawer
+    ListView mDrawerList;
+    RelativeLayout mDrawerPane;
+    private ActionBarDrawerToggle mDrawerToggle;
+    private DrawerLayout mDrawerLayout;
+    DrawerListAdapter mAdapter;
+    private float devToFloorDistance;
+
+    ArrayList<NavItem> mNavItems = new ArrayList<NavItem>();
+    private boolean turningMode;
+    // Record current heading
+    private float curHeading;
+    private double curPlatFormHeight = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        onPreDrawing();
+        DESTINATION = Integer.parseInt(getIntent().getExtras().getString("destination"));
+        START = Integer.parseInt(getIntent().getExtras().getString("start"));
         //setContentView(R.layout.activity_main);
         setContentView(R.layout.activity_navigation);
         TypedValue typedValue = new TypedValue();
         getResources().getValue(R.dimen.min_area_space, typedValue, true);
         mMinAreaSpace = typedValue.getFloat();
 
-        mPauseButton = (Button) findViewById(R.id.pause_button);
+        //mPauseButton = (Button) findViewById(R.id.pause_button);
         // //mFloorplanView = (FloorplanView) findViewById(R.id.floorplan);
         ////mFloorplanView.registerCallback(this);
-        mAreaText = (TextView) findViewById(R.id.area_text);
-        mHeightText = (TextView) findViewById(R.id.height_text);
-        mDistanceText = (TextView) findViewById(R.id.floordistance_text);
-        mFloorText = (TextView) findViewById(R.id.floor_text);
+        //mAreaText = (TextView) findViewById(R.id.area_text);
+        //mHeightText = (TextView) findViewById(R.id.height_text);
+        //mDistanceText = (TextView) findViewById(R.id.floordistance_text);
+        //mFloorText = (TextView) findViewById(R.id.floor_text);
         //currFloor = Integer.parseInt(MainActivity.getStartingPoint());
-        mFloorText.setText("" + (int) currFloor);
+        //mFloorText.setText("" + (int) currFloor);
         isStarted = false;
+        img = (ImageView) findViewById(R.id.imageView4);
+//        up = (ImageView) findViewById(R.id.imageView8);
+//        left = (ImageView) findViewById(R.id.imageView7);
+//        right = (ImageView) findViewById(R.id.imageView6);
+//        down = (ImageView) findViewById(R.id.imageView5);
+//        stop = (ImageView) findViewById(R.id.imageView4);
 
-        up = (ImageView) findViewById(R.id.imageView8);
-        left = (ImageView) findViewById(R.id.imageView7);
-        right = (ImageView) findViewById(R.id.imageView6);
-        down = (ImageView) findViewById(R.id.imageView5);
-        stop = (ImageView) findViewById(R.id.imageView4);
-
-        speechBtn = (Button) findViewById(R.id.speechBtn);
+        //speechBtn = (Button) findViewById(R.id.speechBtn);
         //test=(TextView)findViewById(R.id.TEST);
         checkTTS();
-
-
-        //DisplayManager displayManager = (DisplayManager) getSystemService(DISPLAY_SERVICE);
-        //if (displayManager != null) {
-        // displayManager.registerDisplayListener(new DisplayManager.DisplayListener() {
-        //   @Override
-        //  public void onDisplayAdded(int displayId) {
-        // }
-
-        //@Override
-        //public void onDisplayChanged(int displayId) {
-        //  synchronized (this) {
-        //    setDisplayRotation();
-        //}
-        //}
-
-        //@Override
-        //public void onDisplayRemoved(int displayId) {
-        //}
-        //}, null);
-        //}
-    }
-
-    //
-    @Override
-    protected void onStart() {
-        super.onStart();
-
         // Check and request camera permission at run time.
         if (checkAndRequestPermissions()) {
             bindTangoService();
         }
+
+
+        // Side panel
+        mNavItems.add(new NavItem("Distance to floor", startDevToFloorDistance));
+        mNavItems.add(new NavItem("Avg. Distance", averageDepth ));
+        mNavItems.add(new NavItem("Cur Floor", currFloor));
+
+        // DrawerLayout
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawerLayout);
+
+        // Populate the Navigtion Drawer with options
+        mDrawerPane = (RelativeLayout) findViewById(R.id.drawerPane);
+        mDrawerList = (ListView) findViewById(R.id.navList);
+        mAdapter = new DrawerListAdapter(this, mNavItems);
+        mDrawerList.setAdapter(mAdapter);
+    }
+
+
+
+    //
+    @Override
+    protected void onResume() {
+        super.onResume();
+        //while(!StartFlag);
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                mTangoFloorplanner.resetFloorplan();
+                clearClicked = true;
+                ((TextView)findViewById(R.id.instruction)).setText(R.string.instruction_navigation);
+            }
+        },5000);
+
     }
 
     @Override
@@ -238,21 +273,6 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
         }
     }
 
-    public void onSpeechButtonClicked(View v) {
-        //check if permission is granted
-       /* if(ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
-            ==PackageManager.PERMISSION_DENIED){
-            ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.RECORD_AUDIO},SPEECH_REQUEST_CODE);
-        }else{
-            Intent intent = new Intent(RecognizerIntent.ACTION_VOICE_SEARCH_HANDS_FREE);
-            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-            speechRecognizer.startListening(intent);
-        }*/
-        Intent intent = new Intent(RecognizerIntent.ACTION_VOICE_SEARCH_HANDS_FREE);
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-        startActivityForResult(intent, SPEECH_REQUEST_CODE);
-    }
-
     protected void onActivityResult(int requestCode, int resultCode,
                                     Intent data) {
         if (requestCode == SPEECH_REQUEST_CODE && resultCode == RESULT_OK) {
@@ -267,6 +287,7 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
         if (requestCode == CHECK_CODE) {
             if (resultCode == TextToSpeech.Engine.CHECK_VOICE_DATA_PASS) {
                 speaker = new Speaker(this);
+                speaker.speak("Tango Initializing, please wait   .");
             } else {
                 Intent install = new Intent();
                 install.setAction(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
@@ -464,10 +485,11 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
             }
         }
         final String areaText = String.format("%.2f", area);
+        StartFlag = true;
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                mAreaText.setText(areaText);
+                //mAreaText.setText(areaText);
             }
         });
     }
@@ -476,6 +498,8 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
      * Given the Floorplan levels, calculate the ceiling height and the current distance from the
      * device to the floor.
      */
+
+    private boolean prevTurningMode;
     private void updateFloorAndCeiling(List<TangoFloorplanLevel> levels) {
         if (levels.size() > 0) {
             // Currently only one level is supported by the floorplanning API.
@@ -507,7 +531,7 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
                         TangoSupport.ENGINE_OPENGL,
                         mDisplayRotation);
             }
-            final float devToFloorDistance;
+//            final float devToFloorDistance;
             if (isSet) {
                 if (START < DESTINATION) {
                     devToFloorDistance = devicePose.getTranslationAsFloats()[1] - minFloor;
@@ -528,6 +552,8 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
+                        mNavItems.get(1).setMValue(averageDepth);
+                        mNavItems.get(0).setMValue(abs(devToFloorDistance - startDevToFloorDistance));
                     /*
                      * Testing if floor changes
                     */
@@ -543,51 +569,83 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
                         else {
                             currFloor = START;
                         }
+                        mNavItems.get(2).setMValue(currFloor);
+                        mAdapter.notifyDataSetChanged();
+                        //Log.v("!turn!", "Determining!");
                         if (turnReady) {
                             turnReady = false;
-                            if (turn.equals("left")) {
-                                speaker.speak("Turn Left");
+                            if (headingAngle.equals("left")) {
+                                speaker.speak("Turn Left and forward, be careful");
                                 ShowPic("LEFT");
+                                //Log.v("!turn!", "Turn left!");
                                 numOfTurn++;
-                            } else if (turn.equals("right")) {
-                                speaker.speak("Turn Right");
+                                headingAngle = null;
+                            } else if (headingAngle.equals("right")) {
+                                speaker.speak("Turn Right and forward, be careful");
                                 ShowPic("RIGHT");
+                                //Log.v("!turn!", "Turn right!");
                                 numOfTurn++;
+                                headingAngle = null;
                             }
-                            try {
-                                sleep(3000);
-                            } catch (InterruptedException e) {
-                            }
-                        } else if (averageDepth < 0.95 && averageDepth > 0.70) {
-                            //VOICE: go forward, you have reached the platform
-                            ShowPic("UP");
-                            speaker.speak("You have reached the platform");
                             //clear the parameter
                             maxRadians = 0;
                             maxDistance = 0;
+                            turningMode = true;
+                            new Handler().postDelayed(new Runnable() {
+
+                                @Override
+                                public void run() {
+                                    turningMode = false;
+                                    try {
+                                        sleep(1500);
+                                    } catch (InterruptedException e) {
+                                    }
+                                }
+                            },1500);
+
+                            // Trigger being pulled down
+                        } else if (prevTurningMode && !turningMode ){
+                                // As long as there is a heading angle, it should either be left or right, then turn is ready
+                                    if (headingAngle != null) {
+                                        turnReady = true;
+                                        //Log.v("!turn!", "Turn ready!");
+                                    }
+                                }
+                            else if (turningMode) {
+                            // if still in turningMode, wait
+                            return;
+                        }
+                        else if (averageDepth < 0.96 && averageDepth > 0.70) {
+                            //VOICE: go forward, you have reached the platform
+                            double dist = abs(devToFloorDistance - startDevToFloorDistance);
+                            if (abs(curPlatFormHeight - dist) > 1) {
+                                curPlatFormHeight = dist;
+                                speaker.speak("You have reached the platform, please scan around");
+                            } else {
+                                speaker.speak("Please scan around");
+                            }
+
+                            ShowPic("UP");
+                            getCurHeading();
+
+                            getHeading();
+                            turningMode = true;
+
                         } else if (averageDepth <= 0.70) {
                             //VOICE: stop now and scan left and right
-
                             ShowPic("STOP");
+                            //Log.v("!stop!","stop");
+                            getCurHeading();
                             speaker.speak("Stop and Scan");
-                            //record max distance and radians pairs on left and right
+                            turningMode = true;
+                            //Log.v("!turn!", "get heading is being called!");
                             getHeading();
-                            try {
-                                sleep(3000);
-                            } catch (InterruptedException e) {
-                            }
-                            //determine the turn
-                            turn = determineHeading();
-                            if (!turn.equals("others")) {
-                                turnReady = true;
-                            }
                         } else {
                             //if u have faced the stairs
                             if (numOfTurn >= 2) {
                                 //voice go 2 steps
-                                speaker.speak("Stairs found, you are 2 steps from the stairs");
+                                speaker.speak("Stairs found, you are facing the steps");
                                 numOfTurn = 0;
-
                             }
                             if (abs(currFloor - DESTINATION) < 0.1) {
                                 ShowPic("STOP");
@@ -606,13 +664,9 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
                                 speaker.speak("Go down");
                             }
                         }
-
-                        mFloorText.setText(String.valueOf(round(currFloor)));
-
-                        mHeightText.setText(ceilingHeightText);
-                        //mDistanceText.setText(distanceText);
-                        mDistanceText.setText(String.valueOf(headingAngle));
+                        prevTurningMode = turningMode;
                     }
+
                 });
             }
         }
@@ -628,10 +682,10 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
     private void pauseOrResumeFloorplanning(boolean isPaused) {
         if (!isPaused) {
             mTangoFloorplanner.startFloorplanning();
-            mPauseButton.setText("Pause");
+            //mPauseButton.setText("Pause");
         } else {
             mTangoFloorplanner.stopFloorplanning();
-            mPauseButton.setText("Resume");
+            //mPauseButton.setText("Resume");
         }
     }
 
@@ -728,44 +782,26 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
     }
 
     public void ShowPic(String direction) {
-        switch (direction.toUpperCase()) {
-            case "STOP":
-                down.setAlpha(0.0f);
-                right.setAlpha(0.0f);
-                left.setAlpha(0.0f);
-                up.setAlpha(0.0f);
-                stop.setAlpha(1.0f);
-                break;
-            case "LEFT":
-                down.setAlpha(0.0f);
-                right.setAlpha(0.0f);
-                stop.setAlpha(0.0f);
-                up.setAlpha(0.0f);
-                left.setAlpha(1.0f);
-                break;
-            case "RIGHT":
-                down.setAlpha(0.0f);
-                left.setAlpha(0.0f);
-                stop.setAlpha(0.0f);
-                up.setAlpha(0.0f);
-                right.setAlpha(1.0f);
-                break;
-            case "UP":
-                down.setAlpha(0.0f);
-                left.setAlpha(0.0f);
-                stop.setAlpha(0.0f);
-                right.setAlpha(0.0f);
-                up.setAlpha(1.0f);
-                break;
-            default: //down
-                right.setAlpha(0.0f);
-                left.setAlpha(0.0f);
-                stop.setAlpha(0.0f);
-                up.setAlpha(0.0f);
-                down.setAlpha(1.0f);
-                break;
+            switch (direction.toUpperCase()) {
+                case "STOP":
+                    img.setImageResource(R.drawable.stop);
+                    break;
+                case "LEFT":
+                    img.setImageResource(R.drawable.leftarrow);
+                    break;
+                case "RIGHT":
+                    img.setImageResource(R.drawable.rightarrow);
+                    break;
+                case "UP":
+                    img.setImageResource(R.drawable.uparrow);
+                    break;
+                default: //down
+                    img.setImageResource(R.drawable.downarrow);
+                    break;
+            }
+//            View v = findViewById (R.id.drawerLayout);
+//            v.invalidate();
         }
-    }
 
     /**
      * Calculates the average depth from a point cloud buffer.
@@ -788,7 +824,7 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
     }
 
     private boolean determineStairS(FloatBuffer pointCloundBuffer, int numPoints) {
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 1000; i++) {
             if (determineStairMS(pointCloundBuffer, numPoints)) {
                 return true;
             }
@@ -840,37 +876,41 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
                 TangoSupport.ENGINE_OPENGL,
                 mDisplayRotation);
         float[] deviceOrientation = devicePose.getRotationAsFloats();
-        float yawRadians1 = yRotationFromQuaternion(deviceOrientation[0],
-                deviceOrientation[1], deviceOrientation[2],
-                deviceOrientation[3]);
+//        float yawRadians1 = yRotationFromQuaternion(deviceOrientation[0],
+//                deviceOrientation[1], deviceOrientation[2],
+//                deviceOrientation[3]);
 
         // positive number
         // left section [-3.14, x - 3.14 - 0.5] [x + 0.5, 3.14]
         // right section [x - 3.14 + 0.5, 0][0, x - 0.5]
-        if (yawRadians1 >= 0) {
-            if ((maxRadians > -3.14 && maxRadians < yawRadians1 - 3.14 - 0.5) || (maxRadians > yawRadians1 + 0.5 && maxRadians < 3.14)) {
-                headingAngle = "left";
-            } else if ((maxRadians < 0 && maxRadians > yawRadians1 - 3.14 + 0.5) || (maxRadians > 0 && maxRadians < yawRadians1 - 0.5)) {
-                headingAngle = "right";
+        headingAngle = turnHeading(curHeading, maxRadians);
+        return headingAngle;
+    }
+
+    private String turnHeading(double radian1, double radian2){
+        if (radian1 >= 0) {
+            if ((radian2 > -3.14 && radian2 < radian1 - 3.14 - 0.5) || (radian2 > radian1 + 0.5 && radian2 < 3.14)) {
+                return "left";
+            } else if ((radian2 < 0 && radian2 > radian1 - 3.14 + 0.5) || (radian2 > 0 && radian2 < radian1 - 0.5)) {
+                 return "right";
             } else {
-                headingAngle = "others";
+                return "others";
             }
         }
         // negative number
         // left section [x + 0.5, 0] [0 , x + 3.14 - 0.5]
         // right section [-3.14, x - 0.5] [x+3.14 + 0.5, 3.14]
         else {
-            if ((maxRadians < 0 && maxRadians > yawRadians1 + 0.5) || (maxRadians > 0 && maxRadians < yawRadians1 + 3.14 - 0.5)) {
-                headingAngle = "left";
-            } else if ((maxRadians > -3.14 && maxRadians < yawRadians1 - 0.5) || ((maxRadians > yawRadians1 + 3.14 + 0.5) && maxRadians < 3.14)) {
-                headingAngle = "right";
+            if ((radian2 < 0 && radian2 > radian1 + 0.5) || (radian2 > 0 && radian2 < radian1 + 3.14 - 0.5)) {
+                return "left";
+            } else if ((radian2 > -3.14 && radian2 < radian1 - 0.5) || ((radian2 > radian1 + 3.14 + 0.5) && radian2 < 3.14)) {
+                return "right";
             } else {
-                headingAngle = "others";
+                return "others";
             }
         }
-
-        return headingAngle;
     }
+
 
     /**
      * Get the heading or the turn direction of the user
@@ -879,6 +919,44 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
      * left  right  hasn't rotated yet
      */
     private void getHeading() {
+        Log.d("thread", "trying, I am trying to get heading");
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                //Log.v("!turn!", "get heading started!");
+               boolean leftFlag = false;
+               boolean rightFlag = false;
+                while(!(leftFlag && rightFlag)) {
+                    TangoPoseData devicePose = TangoSupport.getPoseAtTime(0.0,
+                            TangoPoseData.COORDINATE_FRAME_START_OF_SERVICE,
+                            TangoPoseData.COORDINATE_FRAME_DEVICE,
+                            TangoSupport.ENGINE_OPENGL,
+                            TangoSupport.ENGINE_OPENGL,
+                            mDisplayRotation);
+
+                    float[] deviceOrientation = devicePose.getRotationAsFloats();
+                    float yawRadians1 = yRotationFromQuaternion(deviceOrientation[0],
+                            deviceOrientation[1], deviceOrientation[2],
+                            deviceOrientation[3]);
+
+                    averageDepth = getAveragedDepth(pointBuffer, numPoints);
+                    if (averageDepth > maxDistance) {
+                        maxDistance = averageDepth;
+                        maxRadians = yawRadians1;
+                    }
+                    String headingRes = turnHeading(curHeading, yawRadians1);
+                    determineHeading();
+                    //Log.v("!turn!", "After determineHeading max is" +maxRadians  +", headingRes is " + headingRes);
+                    if (headingRes == "left") leftFlag = true;
+                    if (headingRes == "right") rightFlag = true;
+                }
+                //Log.v("!turn!", "get heading stopped! heading angle is: "+ headingAngle);
+                turningMode = false;
+            }
+        }).start();
+    }
+
+    private void getCurHeading() {
 
         Log.d("thread", "trying, I am trying to get heading");
         new Thread(new Runnable() {
@@ -895,16 +973,70 @@ public class FloorPlanReconstructionActivity extends Activity implements Floorpl
                 float yawRadians1 = yRotationFromQuaternion(deviceOrientation[0],
                         deviceOrientation[1], deviceOrientation[2],
                         deviceOrientation[3]);
-
-                averageDepth = getAveragedDepth(pointBuffer, numPoints);
-                if (averageDepth > maxDistance) {
-                    maxDistance = averageDepth;
-                    maxRadians = yawRadians1;
-                }
+                curHeading = yawRadians1;
             }
         }).start();
     }
 
+    class NavItem {
+        String mTitle;
+        double[] mValue = new double[1];
+
+        public NavItem(String title,  double value) {
+            mTitle = title;
+            mValue[0] = value;
+        }
+        public void setMValue(double value)
+        {
+            mValue[0] = value;
+        }
+    }
+    class DrawerListAdapter extends BaseAdapter {
+
+        Context mContext;
+        ArrayList<NavItem> mNavItems;
+
+        public DrawerListAdapter(Context context, ArrayList<NavItem> navItems) {
+            mContext = context;
+            mNavItems = navItems;
+        }
+
+        @Override
+        public int getCount() {
+            return mNavItems.size();
+        }
+
+        @Override
+        public Object getItem(int position) {
+            return mNavItems.get(position);
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return 0;
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            View view;
+
+            if (convertView == null) {
+                LayoutInflater inflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+                view = inflater.inflate(R.layout.drawer_item, null);
+            }
+            else {
+                view = convertView;
+            }
+
+            TextView titleView = (TextView) view.findViewById(R.id.title);
+            TextView subtitleView = (TextView) view.findViewById(R.id.subTitle);
+
+            titleView.setText( mNavItems.get(position).mTitle );
+            subtitleView.setText( String.valueOf(mNavItems.get(position).mValue[0]));
+
+            return view;
+        }
+    }
 
 }
 

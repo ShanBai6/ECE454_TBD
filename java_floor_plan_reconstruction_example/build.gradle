@@ -40,4 +40,5 @@ dependencies {
     compile "com.google.tango:sdk-reconstruction:${release_version}"
     compile "org.rajawali3d:rajawali:1.0.325@aar"
     compile "com.android.support:appcompat-v7:23.0.0"
+    implementation 'com.android.support.constraint:constraint-layout:1.0.2'
 }
